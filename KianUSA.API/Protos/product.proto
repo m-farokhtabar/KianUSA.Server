@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+option csharp_namespace = "KianUSA.API.Services";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+
+    message ProductResponseMessage
+    {
+        string Id = 1;
+        string Name = 2;
+        string Slug = 3;
+        google.protobuf.DoubleValue Inventory = 4;
+        string ShortDescription = 5;
+        string Description = 6;
+        repeated ProductPriceResponseMessage Prices = 7;
+        google.protobuf.DoubleValue Cube = 8;
+        google.protobuf.DoubleValue W = 9;
+        google.protobuf.DoubleValue D = 10;
+        google.protobuf.DoubleValue H = 11;
+        google.protobuf.DoubleValue Weight = 12;
+        google.protobuf.DoubleValue BoxW = 13;
+        google.protobuf.DoubleValue BoxD = 14;
+        google.protobuf.DoubleValue BoxH = 15;
+        repeated string Securities = 16;
+        string WHQTY = 17;
+        int32 Order = 18;
+        repeated string ImagesUrls = 19;
+        bool IsGroup = 20;
+    }
+    message ProductPriceResponseMessage
+    {
+        string Name = 1;
+        google.protobuf.DoubleValue Value = 2;
+    }
+    message ProductsResponseMessage{
+        repeated ProductResponseMessage Products = 1;
+    }
+    message ProductByIdRequestMessage{
+        string Id = 1;
+    }
+    message ProductBySlugRequestMessage{
+        string Slug = 1;
+    }
+    message ProductsByCategoryIdRequestMessage{
+        string CategoryId = 1;
+    }
+
+    service ProductSrv{
+        rpc GetAll(google.protobuf.Empty) returns(ProductsResponseMessage);
+        rpc GetByCategoryId(ProductsByCategoryIdRequestMessage) returns(ProductsResponseMessage);        
+        rpc GetById(ProductByIdRequestMessage) returns(ProductResponseMessage);
+        rpc GetBySlug(ProductBySlugRequestMessage) returns(ProductResponseMessage);
+    }

@@ -1,0 +1,17 @@
+﻿using KianUSA.Application.Entity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace KianUSA.Application.Data.Config
+{
+    public class RoleConfig : IEntityTypeConfiguration<Role>
+    {
+        public void Configure(EntityTypeBuilder<Role> builder)
+        {
+            builder.ToTable(nameof(Role));
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Name).IsRequired(true).HasMaxLength(200);
+            builder.HasIndex(x => x.Name).IsUnique();
+        }
+    }
+}
