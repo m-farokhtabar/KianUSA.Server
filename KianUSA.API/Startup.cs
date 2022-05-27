@@ -22,16 +22,22 @@ namespace KianUSA.API
                 Option.MaxSendMessageSize = 20971520;
                 Option.MaxReceiveMessageSize = 8388608;
             });
+            services.AddCors(o => o.AddPolicy("AllowAll", builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader()
+                       .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
+            }));
             ApplicationSettings appSetting = new();
             services.AddSingleton<IApplicationSettings>(appSetting);
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider srp)
         {
             ApplicationSettings appSetting = (ApplicationSettings)srp.GetService<IApplicationSettings>();
-            appSetting.WwwRootPath = env.WebRootPath;
+            appSetting.WwwRootPath = env.WebRootPath;            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -40,12 +46,15 @@ namespace KianUSA.API
             //app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
+            
+            app.UseGrpcWeb(); // Must be added between UseRouting and UseEndpoints
+            app.UseCors();
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcService<GreeterService>();
-                endpoints.MapGrpcService<CategoryService>();
-                endpoints.MapGrpcService<ProductService>();
+                endpoints.MapGrpcService<GreeterService>().EnableGrpcWeb().RequireCors("AllowAll");
+                endpoints.MapGrpcService<CategoryService>().EnableGrpcWeb().RequireCors("AllowAll");
+                endpoints.MapGrpcService<ProductService>().EnableGrpcWeb().RequireCors("AllowAll");
                 endpoints.MapGet("/", async context =>
                 {
                     await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");

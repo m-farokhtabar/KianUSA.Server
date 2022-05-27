@@ -3,19 +3,21 @@ using Grpc.Core;
 using KianUSA.API.Helper;
 using KianUSA.Application.SeedWork;
 using KianUSA.Application.Services.Product;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace KianUSA.API.Services
 {
     public class ProductService : ProductSrv.ProductSrvBase
     {
-        private readonly Application.Services.Product.ProductService service;
-        public ProductService(IApplicationSettings applicationSettings)
+        private readonly Application.Services.Product.ProductService service;        
+        private readonly ILogger<ProductService> logger;
+        public ProductService(IApplicationSettings applicationSettings, ILogger<ProductService> logger)
         {
             service = new(applicationSettings);
+            this.logger = logger;
         }
         public override async Task<ProductsResponseMessage> GetAll(Empty request, ServerCallContext context)
         {
@@ -35,6 +37,16 @@ namespace KianUSA.API.Services
             return result;
         }
 
+        public override async Task<ProductsResponseMessage> GetByCategorySlug(ProductsByCategorySlugRequestMessage request, ServerCallContext context)
+        {
+            List<ProductDto> products = await service.GetByCategorySlug(request.CategorySlug).ConfigureAwait(false);
+            logger.LogInformation("Count OF DTOProducts:" + products.Count);
+            ProductsResponseMessage result = new();
+            foreach (var product in products)
+                result.Products.Add(MapToProduct(product));
+            logger.LogInformation("Count OF Products:" + result.Products.Count);
+            return result;
+        }
         public override async Task<ProductResponseMessage> GetById(ProductByIdRequestMessage request, ServerCallContext context)
         {
             return MapToProduct(await service.Get(Guid.Parse(request.Id)).ConfigureAwait(false));

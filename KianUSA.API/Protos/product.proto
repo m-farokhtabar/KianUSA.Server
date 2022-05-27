@@ -46,10 +46,15 @@ import "google/protobuf/wrappers.proto";
     message ProductsByCategoryIdRequestMessage{
         string CategoryId = 1;
     }
+    message ProductsByCategorySlugRequestMessage{
+        string CategorySlug = 1;
+    }
 
     service ProductSrv{
         rpc GetAll(google.protobuf.Empty) returns(ProductsResponseMessage);
         rpc GetByCategoryId(ProductsByCategoryIdRequestMessage) returns(ProductsResponseMessage);        
+        rpc GetByCategorySlug(ProductsByCategorySlugRequestMessage) returns(ProductsResponseMessage);        
+        
         rpc GetById(ProductByIdRequestMessage) returns(ProductResponseMessage);
         rpc GetBySlug(ProductBySlugRequestMessage) returns(ProductResponseMessage);
     }

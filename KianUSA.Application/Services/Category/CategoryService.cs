@@ -11,20 +11,22 @@ using KianUSA.Application.Services.Helper;
 namespace KianUSA.Application.Services.Category
 {
     using KianUSA.Application.Entity;
+    using Microsoft.Extensions.Logging;
+    using System.Collections.Concurrent;
 
     public class CategoryService
     {
         private readonly IApplicationSettings appSettings;
         public CategoryService(IApplicationSettings appSettings)
         {
-            this.appSettings = appSettings;
+            this.appSettings = appSettings;            
         }
         public async Task<CategoryDto> GetFirstByOrder()
         {
             using var Db = new Context();
             var Model = await Db.Categories.OrderBy(x=>x.Order).FirstOrDefaultAsync().ConfigureAwait(false);
             if (Model is null)
-                throw new ValidationException("There are not any Category.");
+                throw new ValidationException("There are not any Categories.");
             var ImagesUrl = ManageImages.GetCategoryImagesUrl(Model.Name, appSettings.WwwRootPath);
             return MapTo(Model, ImagesUrl);
         }
@@ -54,15 +56,15 @@ namespace KianUSA.Application.Services.Category
             if (Models?.Count == 0)
                 throw new ValidationException("There are not any Category.");
             var AllImagesUrl = ManageImages.GetCategoriesImagesUrl(appSettings.WwwRootPath);
-            List<CategoryDto> Result = new();
+            ConcurrentBag<CategoryDto> Result = new();
             Parallel.ForEach(Models, Model =>
             {
                 List<string> ImagesUrl = null;
                 if (AllImagesUrl?.Count > 0)
-                    ImagesUrl = AllImagesUrl.Where(x => x.StartsWith(ManageImages.GetStartNameOfCategoryImageFileName(Model.Name))).ToList();
+                    ImagesUrl = AllImagesUrl.Where(x => x.StartsWith("/Images/Products/" + ManageImages.GetStartNameOfCategoryImageFileName(Model.Name))).ToList();
                 Result.Add(MapTo(Model, ImagesUrl));
             });
-            return Result;
+            return Result.ToList();
         }
         public async Task<List<CategoryShortDto>> GetShortData()
         {

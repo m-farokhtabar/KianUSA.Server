@@ -94,7 +94,7 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                     await Db.SaveChangesAsync();
                     Trans.Commit();
                 }
-                catch
+                catch(Exception Ex)
                 {
                     Trans.Rollback();
                     throw new Exception("Cannot update database");
@@ -130,7 +130,7 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                 {
                     var Cat = Categories.Find(x => x.Name.Equals(CatName, StringComparison.OrdinalIgnoreCase));
                     if (Cat is not null)
-                        CategoriesProducts.Add(new CategoryProduct() { CategoryId = Cat.Id, ProductId = ProductId });
+                        CategoriesProducts.Add(new CategoryProduct() { CategoryId = Cat.Id, ProductId = ProductId, CategorySlug = Cat.Slug });
                 }
                 return CategoriesProducts;
 

@@ -16,12 +16,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.34.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.45.0" />
+    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.45.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\Assets\Catalog\Images\" />
     <Folder Include="wwwroot\Images\Products\" />
     <Folder Include="wwwroot\Images\Users\" />
+    <Folder Include="wwwroot\Catalogs\" />
   </ItemGroup>
 
   <ItemGroup>

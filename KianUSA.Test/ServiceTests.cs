@@ -1,5 +1,6 @@
 using KianUSA.API.Configuration;
 using KianUSA.Application.SeedWork;
+using KianUSA.Application.Services.Catalog;
 using KianUSA.Application.Services.UpdateDataByExcel;
 using System.IO;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace KianUSA.Test
         {
             ApplicationSettings = new()
             {
-                WwwRootPath = @"F:\Project\SEPEHR\KianUsa\Project\KianUSA\KianUSA.API\wwwroot"
+                WwwRootPath = @"F:\Project\SEPEHR\KianUsa\Project\Server\KianUSA.API\wwwroot"
             };
 
         }
@@ -45,6 +46,12 @@ namespace KianUSA.Test
             FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\Users Access.xlsx", FileMode.Open, FileAccess.Read);
             UpdateUserByExcelService Service = new();
             await Service.Update(File);
+        }
+        [Fact]
+        public async Task CreateCatalogs()
+        {
+            CatalogService Service = new(ApplicationSettings);
+            await Service.Create();
         }
     }
 }

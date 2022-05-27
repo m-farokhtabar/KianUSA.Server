@@ -7,9 +7,9 @@ namespace KianUSA.Application.Services.Helper
     public static class ManageImages
     {
         private const string START_NAME_PRODUCT_IMAGE_FILE = "kian_usa_product_";
-        private const string START_NAME_PRODUCT_CATEGORY_FILE = "kian_usa_product_";
-        public static string GetStartNameOfProductImageFileName(string ProductName) => $"{START_NAME_PRODUCT_IMAGE_FILE}{ProductName.Replace(" ", "").Replace("_", "")}";
-        public static string GetStartNameOfCategoryImageFileName(string CategoryName) => $"{START_NAME_PRODUCT_CATEGORY_FILE}{CategoryName.Replace(" ", "").Replace("_", "")}";
+        private const string START_NAME_CATEGORY_IMAGE_FILE = "kian_usa_category_";
+        public static string GetStartNameOfProductImageFileName(string ProductName) => $"{START_NAME_PRODUCT_IMAGE_FILE}{ProductName.Replace(" ", "").Replace("_", "").Replace("/","").Replace(@"\", "")}";
+        public static string GetStartNameOfCategoryImageFileName(string CategoryName) => $"{START_NAME_CATEGORY_IMAGE_FILE}{CategoryName.Replace(" ", "").Replace("_", "").Replace("/", "").Replace(@"\", "")}";
         public static List<string> GetProductsAndCategoriesFiles(string HostPath)
         {
             List<string> Result = new();
@@ -24,23 +24,23 @@ namespace KianUSA.Application.Services.Helper
 
         public static List<string> GetProductsImagesUrl(string HostPath)
         {
-            return Directory.GetFiles(HostPath + @"\Images\Products", $"{START_NAME_PRODUCT_IMAGE_FILE}*").Select(x => ("/Images/Products/" + x)).ToList();
+            return Directory.GetFiles(HostPath + @"\Images\Products", $"{START_NAME_PRODUCT_IMAGE_FILE}*").Select(x => ("/Images/Products/" + Path.GetFileName(x))).ToList();
         }
         public static List<string> GetProductImagesUrl(string ProductName, string HostPath)
         {
             if (!string.IsNullOrWhiteSpace(ProductName))
-                return Directory.GetFiles(HostPath + @"\Images\Products", GetStartNameOfProductImageFileName(ProductName)).Select(x => ("/Images/Products/" + x)).ToList();
+                return Directory.GetFiles(HostPath + @"\Images\Products", $"{GetStartNameOfProductImageFileName(ProductName)}*").Select(x => ("/Images/Products/" + Path.GetFileName(x))).ToList();
             else
                 return null;
         }
         public static List<string> GetCategoriesImagesUrl(string HostPath)
         {
-            return Directory.GetFiles(HostPath + @"\Images\Products", $"{START_NAME_PRODUCT_CATEGORY_FILE}*").Select(x => ("/Images/Products/" + x)).ToList();
+            return Directory.GetFiles(HostPath + @"\Images\Products", $"{START_NAME_CATEGORY_IMAGE_FILE}*").Select(x => ("/Images/Products/" + Path.GetFileName(x))).ToList();
         }
         public static List<string> GetCategoryImagesUrl(string CategoryName, string HostPath)
         {
             if (!string.IsNullOrWhiteSpace(CategoryName))
-                return Directory.GetFiles(HostPath + @"\Images\Products", GetStartNameOfCategoryImageFileName(CategoryName)).Select(x => ("/Images/Products/" + x)).ToList();
+                return Directory.GetFiles(HostPath + @"\Images\Products", $"{GetStartNameOfCategoryImageFileName(CategoryName)}*").Select(x => ("/Images/Products/" + Path.GetFileName(x))).ToList();
             else
                 return null;
         }
