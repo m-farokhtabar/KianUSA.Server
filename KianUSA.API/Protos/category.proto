@@ -9,11 +9,13 @@ message CategoryResponseMessage{
         string Name = 2;
         string Slug = 3;
         string ShortDescription = 4;
-        string Description = 5;
+        string Description = 5;        
         repeated CategoryParameterResponseMessage Parameters = 6;
-        int32 Order = 7;
-        repeated string ImagesUrl = 8;
+        repeated CategoryParameterResponseMessage Features = 7;
+        int32 Order = 8;
+        repeated string ImagesUrl = 9;
 }
+
 message CategoriesResponseMessage{
     repeated CategoryResponseMessage Categories = 1;
 }

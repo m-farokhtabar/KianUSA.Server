@@ -88,11 +88,16 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
             List<CategoryParameter> Parameters = new();
             foreach (var Column in Columns)
             {
+                /// Parameter => Parameter [Name]
+                /// Features =>  Parameter Features [Name]
                 string ColumnName = Column.ToString();
                 if (ColumnName.StartsWith("Parameter", StringComparison.OrdinalIgnoreCase))
                 {
                     string Value = string.IsNullOrWhiteSpace(Row[ColumnName].ToString()) ? null : Row[ColumnName].ToString().Trim();
-                    Parameters.Add(new CategoryParameter() { Name = $"{ColumnName.Replace("Parameter", "", StringComparison.OrdinalIgnoreCase).Trim()}", Value = Value });
+                    if (ColumnName.StartsWith("Parameter Features"))
+                        Parameters.Add(new CategoryParameter() { Name = $"{ColumnName.Replace("Parameter Features", "", StringComparison.OrdinalIgnoreCase).Trim()}", Value = Value, IsFeature = true });
+                    else
+                        Parameters.Add(new CategoryParameter() { Name = $"{ColumnName.Replace("Parameter", "", StringComparison.OrdinalIgnoreCase).Trim()}", Value = Value, IsFeature = false });
                 }
             }
             return System.Text.Json.JsonSerializer.Serialize(Parameters);

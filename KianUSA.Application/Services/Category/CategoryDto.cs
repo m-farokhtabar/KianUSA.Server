@@ -11,6 +11,7 @@ namespace KianUSA.Application.Services.Category
         public string ShortDescription { get; set; }
         public string Description { get; set; }
         public List<CategoryParameterDto> Parameters { get; set; }
+        public List<CategoryParameterDto> Features { get; set; }
         public int Order { get; set; }
         public List<string> ImagesUrl { get; set; }
     }

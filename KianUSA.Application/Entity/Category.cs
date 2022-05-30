@@ -11,6 +11,8 @@ namespace KianUSA.Application.Entity
         public string Description { get; set; }
         /// <summary>
         /// Json Format
+        /// Parameter => Parameter [Name]
+        /// Features =>  Parameter Features [Name]
         /// <see cref="CategoryParameter"/>
         /// </summary>
         public string Parameter { get; set; }
@@ -20,6 +22,7 @@ namespace KianUSA.Application.Entity
     {
         public string Name { get; set; }
         public string Value { get; set; }
+        public bool IsFeature { get; set; }
     }
 
 }

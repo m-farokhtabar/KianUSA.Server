@@ -56,7 +56,7 @@ namespace KianUSA.Application.Services.Category
             if (Models?.Count == 0)
                 throw new ValidationException("There are not any Category.");
             var AllImagesUrl = ManageImages.GetCategoriesImagesUrl(appSettings.WwwRootPath);
-            ConcurrentBag<CategoryDto> Result = new();
+            ConcurrentBag<CategoryDto> Result = new();            
             Parallel.ForEach(Models, Model =>
             {
                 List<string> ImagesUrl = null;
@@ -84,8 +84,9 @@ namespace KianUSA.Application.Services.Category
                 Slug = Model.Slug,
                 Order = Model.Order,
                 Description = Model.Description,
-                ShortDescription = Model.ShortDescription,
-                Parameters = !string.IsNullOrWhiteSpace(Model.Parameter) ? System.Text.Json.JsonSerializer.Deserialize<List<CategoryParameterDto>>(Model.Parameter) : null,
+                ShortDescription = Model.ShortDescription,                
+                Parameters = !string.IsNullOrWhiteSpace(Model.Parameter) ? (System.Text.Json.JsonSerializer.Deserialize<List<CategoryParameter>>(Model.Parameter))?.Where(x=>x.IsFeature == false)?.ToList().Select(x=> new CategoryParameterDto {Name = x.Name, Value = x.Value }).ToList() : null,
+                Features = !string.IsNullOrWhiteSpace(Model.Parameter) ? (System.Text.Json.JsonSerializer.Deserialize<List<CategoryParameter>>(Model.Parameter))?.Where(x => x.IsFeature == true)?.ToList().Select(x => new CategoryParameterDto { Name = x.Name, Value = x.Value }).ToList() : null,
                 ImagesUrl = ImagesUrl
             };
         }

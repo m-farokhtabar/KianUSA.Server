@@ -14,7 +14,7 @@ namespace KianUSA.Application.Entity
         /// <summary>
         /// Json format
         /// </summary>
-        public string Price { get; set; }
+        public string Price { get; set; }        
         public double? Cube { get; set; }
         public double? W { get; set; }
         public double? D { get; set; }

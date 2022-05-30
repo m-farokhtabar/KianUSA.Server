@@ -74,6 +74,17 @@ namespace KianUSA.API.Services
                     });
                 }
             }
+            if (category.Features?.Count > 0)
+            {
+                foreach (var feature in category.Features)
+                {
+                    Message.Features.Add(new CategoryParameterResponseMessage()
+                    {
+                        Name = Tools.NullStringToEmpty(feature.Name),
+                        Value = Tools.NullStringToEmpty(feature.Value)
+                    });
+                }
+            }
             return Message;            
         }
         private CategoryShortDataResponseMessage MapToCategoryShortData(CategoryShortDto category)
