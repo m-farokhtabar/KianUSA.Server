@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace KianUSA.Application.Services.Helper
 {
@@ -15,5 +16,11 @@ namespace KianUSA.Application.Services.Helper
             return Convert.ToHexString(hashBytes);
         }
         public static List<string> SecurityToList(string Security) => string.IsNullOrWhiteSpace(Security) ? null : Security.Split(",").ToList();
+
+        public static bool EmailIsValid(string email)
+        {
+            Regex regex = new(@"^([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$", RegexOptions.CultureInvariant | RegexOptions.Singleline);
+            return regex.IsMatch(email);
+        }
     }
 }

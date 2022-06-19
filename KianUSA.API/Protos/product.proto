@@ -53,7 +53,8 @@ import "google/protobuf/wrappers.proto";
     service ProductSrv{
         rpc GetAll(google.protobuf.Empty) returns(ProductsResponseMessage);
         rpc GetByCategoryId(ProductsByCategoryIdRequestMessage) returns(ProductsResponseMessage);        
-        rpc GetByCategorySlug(ProductsByCategorySlugRequestMessage) returns(ProductsResponseMessage);        
+        rpc GetByCategorySlug(ProductsByCategorySlugRequestMessage) returns(ProductsResponseMessage);
+        rpc GetByFirstCategory(google.protobuf.Empty) returns(ProductsResponseMessage);
         
         rpc GetById(ProductByIdRequestMessage) returns(ProductResponseMessage);
         rpc GetBySlug(ProductBySlugRequestMessage) returns(ProductResponseMessage);

@@ -5,5 +5,6 @@ namespace KianUSA.API.Configuration
     public class ApplicationSettings : IApplicationSettings
     {
         public string WwwRootPath { get; set; }        
+        public string CatalogEmailSetting { get; set; }
     }
 }

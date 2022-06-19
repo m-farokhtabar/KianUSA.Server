@@ -89,6 +89,7 @@ namespace KianUSA.Application.Services.Catalog
         }
         private static string CreateMeasureTable(CategoryDto Category, List<ProductWithSlugCatDto> Products, string TemplateCatalogMeasureTable, string TemplateCatalogMeasureTableRow)
         {
+            //TODO: the name of price columns have to come from Database
             var CurrentProducts = Products.Where(x => x.CategorySlug.Contains(Category.Slug)).OrderBy(x => x.Order).ToList();
             if (CurrentProducts?.Count > 0)
             {

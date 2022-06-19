@@ -2,6 +2,7 @@
 {
     public interface IApplicationSettings
     {
-        public string WwwRootPath { get; }
+        public string WwwRootPath { get; }        
+        public string CatalogEmailSetting { get; set; }
     }
 }

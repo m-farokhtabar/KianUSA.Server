@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "KianUSA.API.Services";
+
+message SendCatalogRequestMessage{
+	string CustomerFullName = 1;
+	string CustomerEmail = 2;
+	string CategorySlug = 3;
+}
+message SendCatalogResponseMessage{
+	bool PutInEmailQueue = 1;
+}
+service EmailSrv{    
+	rpc SendCatalog(SendCatalogRequestMessage) returns (SendCatalogResponseMessage);
+}

@@ -6,11 +6,13 @@
 
   <ItemGroup>
     <None Remove="Protos\category.proto" />
+    <None Remove="Protos\email.proto" />
     <None Remove="Protos\product.proto" />
   </ItemGroup>
 
   <ItemGroup>
     <Protobuf Include="Protos\category.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\email.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\greet.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\product.proto" GrpcServices="Server" />
   </ItemGroup>
@@ -18,11 +20,11 @@
   <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" Version="2.45.0" />
     <PackageReference Include="Grpc.AspNetCore.Web" Version="2.45.0" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.7.30" />
+    <PackageReference Include="Hangfire.InMemory" Version="0.3.4" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\Assets\Catalog\Images\" />
-    <Folder Include="wwwroot\Images\Products\" />
     <Folder Include="wwwroot\Images\Users\" />
     <Folder Include="wwwroot\Catalogs\" />
   </ItemGroup>

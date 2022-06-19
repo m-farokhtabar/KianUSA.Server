@@ -28,6 +28,15 @@ namespace KianUSA.API.Services
             return result;
         }
 
+        public override async Task<ProductsResponseMessage> GetByFirstCategory(Empty request, ServerCallContext context)
+        {
+            List<ProductDto> products = await service.GetByFirstCategoryInOrder().ConfigureAwait(false);
+            ProductsResponseMessage result = new();
+            foreach (var product in products)
+                result.Products.Add(MapToProduct(product));
+            return result;
+        }
+
         public override async Task<ProductsResponseMessage> GetByCategoryId(ProductsByCategoryIdRequestMessage request, ServerCallContext context)
         {
             List<ProductDto> products = await service.GetByCategoryId(Guid.Parse(request.CategoryId)).ConfigureAwait(false);

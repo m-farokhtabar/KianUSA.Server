@@ -60,6 +60,17 @@ namespace KianUSA.Application.Services.Product
 
             return MapToDtoWithSlugCat(Models, ManageImages.GetProductsImagesUrl(appSettings.WwwRootPath));
         }
+        public async Task<List<ProductDto>> GetByFirstCategoryInOrder()
+        {
+            using var Db = new Context();
+            var CategoryModel = await Db.Categories.OrderBy(x => x.Order).FirstOrDefaultAsync().ConfigureAwait(false);
+            var Models = await Db.Products.Where(x => x.Categories.Any(x => x.CategoryId == CategoryModel.Id)).ToListAsync().ConfigureAwait(false);
+            if (Models?.Count == 0)
+                throw new ValidationException("In the category there are not any products.");
+
+            return Mapto(Models, ManageImages.GetProductsImagesUrl(appSettings.WwwRootPath));
+        }
+
         public async Task<List<ProductDto>> GetByCategoryId(Guid CategoryId)
         {
             using var Db = new Context();
