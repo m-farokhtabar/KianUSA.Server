@@ -6,5 +6,8 @@ namespace KianUSA.API.Configuration
     {
         public string WwwRootPath { get; set; }        
         public string CatalogEmailSetting { get; set; }
+        public string SigningKey { get; set; }
+        public int UserAuthorizationTokenExpireTimeInDay { get; set; }
+
     }
 }

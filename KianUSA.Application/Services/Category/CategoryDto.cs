@@ -12,6 +12,7 @@ namespace KianUSA.Application.Services.Category
         public string Description { get; set; }
         public List<CategoryParameterDto> Parameters { get; set; }
         public List<CategoryParameterDto> Features { get; set; }
+        public List<ChildCategoryDto> Children { get; set; }
         public int Order { get; set; }
         public List<string> ImagesUrl { get; set; }
     }
@@ -19,5 +20,11 @@ namespace KianUSA.Application.Services.Category
     {
         public string Name { get; set; }
         public string Value { get; set; }
+    }
+    public class ChildCategoryDto
+    {
+        public Guid Id { get; set; }
+        public string Slug { get; set; }
+        public int Order { get; set; }
     }
 }

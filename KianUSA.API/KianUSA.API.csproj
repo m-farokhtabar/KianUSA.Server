@@ -2,15 +2,18 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <UserSecretsId>cea89f61-8c98-4c82-8478-27ea97285882</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Protos\account.proto" />
     <None Remove="Protos\category.proto" />
     <None Remove="Protos\email.proto" />
     <None Remove="Protos\product.proto" />
   </ItemGroup>
 
   <ItemGroup>
+    <Protobuf Include="Protos\account.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\category.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\email.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\greet.proto" GrpcServices="Server" />
@@ -22,6 +25,7 @@
     <PackageReference Include="Grpc.AspNetCore.Web" Version="2.45.0" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.7.30" />
     <PackageReference Include="Hangfire.InMemory" Version="0.3.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.17" />
   </ItemGroup>
 
   <ItemGroup>

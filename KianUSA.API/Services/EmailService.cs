@@ -2,10 +2,12 @@
 using Hangfire;
 using KianUSA.Application.SeedWork;
 using KianUSA.Application.Services.Email.PriceList;
+using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
 
 namespace KianUSA.API.Services
 {
+    [Authorize]
     public class EmailService : EmailSrv.EmailSrvBase
     {
         private readonly Application.Services.Email.PriceList.PriceListEmailService service;

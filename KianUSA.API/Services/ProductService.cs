@@ -3,6 +3,7 @@ using Grpc.Core;
 using KianUSA.API.Helper;
 using KianUSA.Application.SeedWork;
 using KianUSA.Application.Services.Product;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace KianUSA.API.Services
 {
+    [Authorize]
     public class ProductService : ProductSrv.ProductSrvBase
     {
         private readonly Application.Services.Product.ProductService service;        

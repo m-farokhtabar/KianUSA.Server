@@ -40,8 +40,8 @@ namespace KianUSA.Application.Services.Email.PriceList
             {
                 try
                 {
-                    EmailSetting Setting = System.Text.Json.JsonSerializer.Deserialize<EmailSetting>(Result.Value);                    
-                    string Body = Setting.BodyTemplate.Replace("{CustomerName}", CustomerFullName).Replace("{CatalogSlug}", CategorySlug)
+                    EmailSetting Setting = System.Text.Json.JsonSerializer.Deserialize<EmailSetting>(Result.Value);
+                    string Body = Setting.BodyTemplate.Replace("{CustomerName}", CustomerFullName).Replace("{CatalogSlug}", $"{CategorySlug}?id={new Random(Guid.NewGuid().GetHashCode()).Next(1,999999999)}")
                                                       .Replace("{User_FirstName}", UserFirstName).Replace("{User_LastName}", UserLastName).Replace("{CurrentDate}", DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLongTimeString());
                     EmailService Service = new();
                     await Service.SendMailAsync(Setting, Setting.SubjectTemplate, CustomerEmail, Body);

@@ -55,7 +55,7 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                 using var Trans = await Db.Database.BeginTransactionAsync();
                 try
                 {
-                    Db.Database.ExecuteSqlRaw("DELETE [Role]");
+                    Db.Database.ExecuteSqlRaw("DELETE FROM \"Role\"");
                     Db.Roles.AddRange(Roles);
                     await Db.SaveChangesAsync();
                     Trans.Commit();

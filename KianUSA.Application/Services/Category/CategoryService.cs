@@ -19,7 +19,7 @@ namespace KianUSA.Application.Services.Category
         private readonly IApplicationSettings appSettings;
         public CategoryService(IApplicationSettings appSettings)
         {
-            this.appSettings = appSettings;            
+            this.appSettings = appSettings;
         }
         public async Task<CategoryDto> GetFirstByOrder()
         {

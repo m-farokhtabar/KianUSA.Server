@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option csharp_namespace = "KianUSA.API.Protos";
+
+message LoginRequestMessage{
+	string Username = 1;
+	string Password = 2;
+}
+message LoginResponseMessage{
+	string Token = 1;
+}
+service AccountSrc{
+	rpc Login(LoginRequestMessage) returns (LoginResponseMessage);
+}

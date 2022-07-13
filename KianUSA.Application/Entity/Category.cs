@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace KianUSA.Application.Entity
 {
@@ -17,6 +18,7 @@ namespace KianUSA.Application.Entity
         /// </summary>
         public string Parameter { get; set; }
         public int Order { get; set; }
+        public virtual ICollection<CategoryCategory> ParentCategories { get; set; }
     }
     public class CategoryParameter
     {
@@ -24,5 +26,4 @@ namespace KianUSA.Application.Entity
         public string Value { get; set; }
         public bool IsFeature { get; set; }
     }
-
 }

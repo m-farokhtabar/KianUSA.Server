@@ -60,7 +60,7 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                 using var Trans = await Db.Database.BeginTransactionAsync();
                 try
                 {
-                    Db.Database.ExecuteSqlRaw("DELETE [User]");
+                    Db.Database.ExecuteSqlRaw("DELETE FROM \"User\"");
                     Db.Users.AddRange(Users);
                     await Db.SaveChangesAsync();
                     Trans.Commit();

@@ -31,7 +31,7 @@ namespace KianUSA.Application.Services.Email
             mailMessage.To.Add(To);
 
             using var client = new SmtpClient(Setting.Host);
-            client.Credentials = new NetworkCredential(Setting.UserName, Setting.Password);            
+            client.Credentials = new NetworkCredential(Setting.UserName, Setting.Password);
             client.Port = Setting.Port;
             client.EnableSsl = true;
             client.UseDefaultCredentials = false;

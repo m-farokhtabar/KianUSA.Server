@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using KianUSA.Application.Services.Category;
 using System;
 using KianUSA.API.Helper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace KianUSA.API.Services
 {
+    [Authorize]
     public class CategoryService : CategorySrv.CategorySrvBase
     {
         private readonly Application.Services.Category.CategoryService service;

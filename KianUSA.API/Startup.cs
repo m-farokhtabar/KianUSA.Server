@@ -1,22 +1,37 @@
 ﻿using Hangfire;
 using KianUSA.API.Configuration;
 using KianUSA.API.Services;
+using KianUSA.Application.Data;
 using KianUSA.Application.SeedWork;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using System;
+using System.Text;
 
 namespace KianUSA.API
 {
     public class Startup
     {
+        public IConfiguration Configuration { get; }
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            ApplicationSettings appSetting = new();
+            Configuration.GetSection("AppSettings").Bind(appSetting);
+            services.AddSingleton<IApplicationSettings>(appSetting);
+            Context.ConnectionString = Configuration.GetConnectionString("Database");
+
             var AutoRetryHangfire = new AutomaticRetryAttribute { Attempts = 3, DelaysInSeconds = new int[3] { 10, 30, 90 } };
             services.AddSingleton(AutoRetryHangfire);
             GlobalJobFilters.Filters.Add(AutoRetryHangfire);
@@ -25,6 +40,26 @@ namespace KianUSA.API
             .UseFilter(provider.GetRequiredService<AutomaticRetryAttribute>())
             );
             services.AddHangfireServer();
+
+
+            services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(x =>
+            {
+                x.RequireHttpsMetadata = false;
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(appSetting.SigningKey)),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+            });
+            services.AddAuthorization();
 
             services.AddGrpc(Option =>
             {
@@ -39,16 +74,13 @@ namespace KianUSA.API
                        .AllowAnyHeader()
                        .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
             }));
-            ApplicationSettings appSetting = new();
-            services.AddSingleton<IApplicationSettings>(appSetting);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider srp)
         {
             ApplicationSettings appSetting = (ApplicationSettings)srp.GetService<IApplicationSettings>();
-            appSetting.WwwRootPath = env.WebRootPath;
-            appSetting.CatalogEmailSetting = "price-list-email-setting";
+            appSetting.WwwRootPath = env.WebRootPath;               
 
             if (env.IsDevelopment())
             {
@@ -63,18 +95,26 @@ namespace KianUSA.API
 
             app.UseHangfireDashboard();
 
+            app.UseAuthentication();
+            app.UseAuthorization();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGrpcService<GreeterService>().EnableGrpcWeb().RequireCors("AllowAll");
                 endpoints.MapGrpcService<CategoryService>().EnableGrpcWeb().RequireCors("AllowAll");
                 endpoints.MapGrpcService<ProductService>().EnableGrpcWeb().RequireCors("AllowAll");
                 endpoints.MapGrpcService<EmailService>().EnableGrpcWeb().RequireCors("AllowAll");
+                endpoints.MapGrpcService<AccountService>().EnableGrpcWeb().RequireCors("AllowAll");
                 endpoints.MapGet("/", async context =>
                 {
                     await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
                 });
                 endpoints.MapHangfireDashboard();
             });
+        }
+        public static void ConfigureAuthentication(string SigningKey)
+        {
+
         }
     }
 }
