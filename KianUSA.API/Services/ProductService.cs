@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace KianUSA.API.Services
@@ -42,6 +43,14 @@ namespace KianUSA.API.Services
         public override async Task<ProductsResponseMessage> GetByCategoryId(ProductsByCategoryIdRequestMessage request, ServerCallContext context)
         {
             List<ProductDto> products = await service.GetByCategoryId(Guid.Parse(request.CategoryId)).ConfigureAwait(false);
+            ProductsResponseMessage result = new();
+            foreach (var product in products)
+                result.Products.Add(MapToProduct(product));
+            return result;
+        }
+        public override async Task<ProductsResponseMessage> GetByCategoryIds(ProductsByCategoryIdsRequestMessage request, ServerCallContext context)
+        {            
+            List<ProductDto> products = await service.GetByCategoryIds(request.CategoryIds.ToList().ConvertAll(x => Guid.Parse(x))).ConfigureAwait(false);
             ProductsResponseMessage result = new();
             foreach (var product in products)
                 result.Products.Add(MapToProduct(product));
@@ -90,6 +99,9 @@ namespace KianUSA.API.Services
                 Weight = product.Weight,
                 WHQTY = product.WHQTY                
             };
+            if (product.CategoryIds?.Count > 0)
+                Message.CategoryIds.AddRange(product.CategoryIds.ConvertAll(x => x.ToString()));
+
             if (product.ImagesUrls?.Count > 0)
                 Message.ImagesUrls.AddRange(product.ImagesUrls);
             if (product.Securities?.Count > 0)

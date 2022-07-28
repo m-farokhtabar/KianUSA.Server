@@ -12,6 +12,7 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
     using KianUSA.Application.Entity;
     using System.Data;
     using System.Linq;
+    using System.Text.RegularExpressions;
 
     public class UpdateCateogryByExcelService
     {
@@ -46,9 +47,48 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                             Description = Row["Description"].ToString().Trim(),
                             ShortDescription = Row["Short description"].ToString().Trim(),
                             Parameter = CreateJsonParameters(Tables[0].Columns, Row),
+                            ParentsString = Row["Parents"].ToString().Trim(),
                             Order = Order
                         };
                         Categories.Add(NewCategory);
+                    }
+                    for (int i = 0; i < Categories.Count; i++)
+                    {
+                        var Category = Categories[i];
+                        if (!string.IsNullOrWhiteSpace(Category.ParentsString))
+                        {
+                            var Matches = Regex.Matches(Category.ParentsString, @"(\[[^\[\]]*\])");
+                            if (Matches?.Count > 0)
+                            {
+                                foreach (var Match in Matches)
+                                {
+                                    string CategoryData = Match?.ToString(); 
+                                    if (!string.IsNullOrWhiteSpace(CategoryData))
+                                    {
+                                        var CatNameOrder = CategoryData.Replace("[","").Replace("]", "").Split(",");
+                                        if (CatNameOrder?.Length == 2)
+                                        {
+                                            if (!string.IsNullOrWhiteSpace(CatNameOrder[0]))
+                                            {
+                                                var ParentCategory = Categories.FirstOrDefault(x => string.Equals(x.Name, CatNameOrder[0].Trim(), StringComparison.InvariantCultureIgnoreCase));
+                                                int Order = 0;
+                                                try
+                                                {
+                                                    if (!string.IsNullOrWhiteSpace(CatNameOrder[1]))
+                                                        Order = Convert.ToInt32(CatNameOrder[1]);
+                                                }
+                                                catch
+                                                {
+
+                                                }
+                                                Category.Parents ??= new List<CategoryCategory>();
+                                                Category.Parents.Add(new CategoryCategory() { CategoryId = Category.Id, CategorySlug = Category.Slug, ParentCategoryId = ParentCategory.Id, ParentCategorySlug = ParentCategory.Slug, Order = Order });
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

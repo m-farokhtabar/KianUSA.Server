@@ -15,7 +15,8 @@ namespace KianUSA.Test
         {
             ApplicationSettings = new()
             {
-                WwwRootPath = @"F:\Project\SEPEHR\KianUsa\Project\Server\KianUSA.API\wwwroot"
+                WwwRootPath = @"F:\Project\SEPEHR\KianUsa\Project\Server\KianUSA.API\wwwroot",
+                StartIndexOfImageForUsingInCatalog = 10
             };
 
         }
@@ -23,7 +24,7 @@ namespace KianUSA.Test
         [Fact, Priority(1)]
         public async Task ShouldBeCreatedAllCategoriesByExcelFile()
         {
-            FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\1\Categories.xlsx", FileMode.Open,FileAccess.Read);            
+            FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\2\Categories.xlsx", FileMode.Open,FileAccess.Read);            
             UpdateCateogryByExcelService Service = new();
             await Service.Update(File);
         }
@@ -31,7 +32,7 @@ namespace KianUSA.Test
         [Fact, Priority(2)]
         public async Task ShouldBeCreatedAllProductsByExcelFile()
         {
-            FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\1\Items.xlsx", FileMode.Open, FileAccess.Read);
+            FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\2\Items.xlsx", FileMode.Open, FileAccess.Read);
             UpdateProductByExcelService Service = new(ApplicationSettings);
             await Service.Update(File);
         }
@@ -39,7 +40,7 @@ namespace KianUSA.Test
         [Fact, Priority(3)]
         public async Task ShouldBeCreatedAllRolesByExcelFile()
         {
-            FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\1\Roles.xlsx", FileMode.Open, FileAccess.Read);
+            FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\2\Roles.xlsx", FileMode.Open, FileAccess.Read);
             UpdateRoleByExcelService Service = new();
             await Service.Update(File);
         }
@@ -47,7 +48,7 @@ namespace KianUSA.Test
         [Fact, Priority(4)]
         public async Task ShouldBeCreatedAllUsersByExcelFile()
         {
-            FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\1\Users.xlsx", FileMode.Open, FileAccess.Read);
+            FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\2\Users.xlsx", FileMode.Open, FileAccess.Read);
             UpdateUserByExcelService Service = new();
             await Service.Update(File);
         }

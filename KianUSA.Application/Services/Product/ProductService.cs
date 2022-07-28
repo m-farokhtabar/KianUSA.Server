@@ -89,6 +89,15 @@ namespace KianUSA.Application.Services.Product
 
             return Mapto(Models, ManageImages.GetProductsImagesUrl(appSettings.WwwRootPath));
         }
+        public async Task<List<ProductDto>> GetByCategoryIds(List<Guid> Ids)
+        {
+            using var Db = new Context();
+            var Models = await Db.Products.Include(x=>x.Categories).Where(x => x.Categories.Any(x => Ids.Contains(x.CategoryId))).ToListAsync().ConfigureAwait(false);
+            if (Models?.Count == 0)
+                throw new ValidationException("In the category there are not any products.");
+
+            return Mapto(Models, ManageImages.GetProductsImagesUrl(appSettings.WwwRootPath));
+        }
 
         private List<ProductDto> Mapto(List<Product> Models, List<string> AllImagesUrl)
         {
@@ -127,7 +136,8 @@ namespace KianUSA.Application.Services.Product
                 Securities = Tools.SecurityToList(Model.Security),
                 ImagesUrls = ImagesUrl,
                 Slug = Model.Slug,
-                Inventory = Model.Inventory
+                Inventory = Model.Inventory,
+                CategoryIds = Model.Categories?.Select(x => x.CategoryId).ToList()
             };
         }
         private List<ProductWithSlugCatDto> MapToDtoWithSlugCat(List<Product> Models, List<string> AllImagesUrl)

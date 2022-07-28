@@ -46,6 +46,15 @@ namespace KianUSA.API.Services
         {
             return MapToCategory(await service.Get(request.Slug).ConfigureAwait(false));
         }
+        public override async Task<CategoriesResponseMessage> GetBySlugWithChildren(CategoryBySlugRequestMessage request, ServerCallContext context)
+        {           
+            List<CategoryDto> categories = await service.GetBySlugWithChildren(request.Slug).ConfigureAwait(false);
+            CategoriesResponseMessage result = new();
+            foreach (var category in categories)
+                result.Categories.Add(MapToCategory(category));
+            return result;
+
+        }
 
         public override async Task<CategoryResponseMessage> GetFirst(Empty request, ServerCallContext context)
         {
@@ -84,6 +93,18 @@ namespace KianUSA.API.Services
                     {
                         Name = Tools.NullStringToEmpty(feature.Name),
                         Value = Tools.NullStringToEmpty(feature.Value)
+                    });
+                }
+            }
+            if (category.Children?.Count > 0)
+            {
+                foreach (var child in category.Children)
+                {
+                    Message.Children.Add(new ChildrenCategoryResponseMessage()
+                    {
+                        Id = child.Id.ToString(),
+                        Slug = child.Slug,
+                        Order = child.Order
                     });
                 }
             }

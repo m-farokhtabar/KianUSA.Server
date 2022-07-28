@@ -28,6 +28,7 @@ import "google/protobuf/wrappers.proto";
         int32 Order = 18;
         repeated string ImagesUrls = 19;
         bool IsGroup = 20;
+        repeated string CategoryIds = 21;
     }
     message ProductPriceResponseMessage
     {
@@ -46,6 +47,9 @@ import "google/protobuf/wrappers.proto";
     message ProductsByCategoryIdRequestMessage{
         string CategoryId = 1;
     }
+    message ProductsByCategoryIdsRequestMessage{
+        repeated string CategoryIds = 1;
+    }
     message ProductsByCategorySlugRequestMessage{
         string CategorySlug = 1;
     }
@@ -53,6 +57,7 @@ import "google/protobuf/wrappers.proto";
     service ProductSrv{
         rpc GetAll(google.protobuf.Empty) returns(ProductsResponseMessage);
         rpc GetByCategoryId(ProductsByCategoryIdRequestMessage) returns(ProductsResponseMessage);        
+        rpc GetByCategoryIds(ProductsByCategoryIdsRequestMessage) returns(ProductsResponseMessage);
         rpc GetByCategorySlug(ProductsByCategorySlugRequestMessage) returns(ProductsResponseMessage);
         rpc GetByFirstCategory(google.protobuf.Empty) returns(ProductsResponseMessage);
         

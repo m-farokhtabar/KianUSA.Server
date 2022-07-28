@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace KianUSA.Application.Entity
 {
@@ -18,7 +19,12 @@ namespace KianUSA.Application.Entity
         /// </summary>
         public string Parameter { get; set; }
         public int Order { get; set; }
-        public virtual ICollection<CategoryCategory> ParentCategories { get; set; }
+        public virtual ICollection<CategoryCategory> Parents { get; set; }
+        /// <summary>
+        /// this is just for filling data from excel
+        /// </summary>
+        [NotMapped]
+        public string ParentsString { get; set; }
     }
     public class CategoryParameter
     {

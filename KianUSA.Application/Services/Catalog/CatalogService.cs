@@ -2,7 +2,6 @@
 using KianUSA.Application.SeedWork;
 using KianUSA.Application.Services.Category;
 using KianUSA.Application.Services.Product;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -63,6 +62,10 @@ namespace KianUSA.Application.Services.Catalog
 
             await Task.Run(() =>
             {
+                DirectoryInfo CatalogRoot = new DirectoryInfo(CatalogsPath);
+                foreach (var File in CatalogRoot.GetFiles())
+                    File.Delete();
+
                 ConcurrentBag<(int Order, string Body)> Catalogs = new();
                 Parallel.ForEach(Categories, Category =>
                 {
@@ -76,7 +79,7 @@ namespace KianUSA.Application.Services.Catalog
                     Body = Body.Replace("{PageNumber}", "1");
                     HtmlConverter.ConvertToPdf(TemplateCatalog.Replace("{Style}", Style).Replace("{Body}", TemplateFirstPage + Body), pdfDest);
                 });
-                using FileStream AllInOnePdf = File.Open($"{CatalogsPath}Catalog.pdf", FileMode.Create);
+                using FileStream AllInOnePdf = File.Open($"{CatalogsPath}Catalog.pdf", FileMode.Create, FileAccess.ReadWrite);
                 StringBuilder All = new();
                 var SortedCatalogs = Catalogs.OrderBy(x => x.Order).ToList();
                 for (int i = 0; i < SortedCatalogs.Count; i++)
@@ -118,11 +121,14 @@ namespace KianUSA.Application.Services.Catalog
         {
             if (Category.ImagesUrl?.Count > 0)
             {
-                Category.ImagesUrl.Sort();
-                return TemplateSingleBanner.Replace("{BannerSrc}", appSettings.WwwRootPath + Category.ImagesUrl[0].Replace("/", "\\"));
-            }
-            else
-                return TemplateSingleBanner.Replace("{BannerSrc}", $"{AssetCatalogPath}Images\\kian_usa_comming_soon.jpg");
+                //Category.ImagesUrl.Sort();
+                foreach (var ImageUrl in Category.ImagesUrl)
+                {
+                    if (System.Convert.ToInt32(ImageUrl.Substring(ImageUrl.LastIndexOf("_") + 1, 4)) >= appSettings.StartIndexOfImageForUsingInCatalog)
+                        return TemplateSingleBanner.Replace("{BannerSrc}", appSettings.WwwRootPath + ImageUrl.Replace("/", "\\"));
+                }                
+            }           
+            return TemplateSingleBanner.Replace("{BannerSrc}", $"{AssetCatalogPath}Images\\kian_usa_comming_soon.jpg");
         }
 
         private static string CreateDetailsTable(CategoryDto Category, string TemplateCatalogDetailsTable, string TemplateCatalogDetailsTableRow)

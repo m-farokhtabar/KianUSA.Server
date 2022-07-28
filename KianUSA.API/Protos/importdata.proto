@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "KianUSA.API.Services";
+
+message ByFilesResponse{
+	bool IsSuccessful = 1;
+	string Message= 2;
+}
+message ByFilesRequest{
+	string Username = 1;
+	string Password = 2;
+}
+service ImportDataSrv{
+	rpc ByFiles(ByFilesRequest) returns (ByFilesResponse);
+}
