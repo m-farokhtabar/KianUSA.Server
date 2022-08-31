@@ -15,6 +15,7 @@ message CategoryResponseMessage{
         repeated ChildrenCategoryResponseMessage Children = 8;
         int32 Order = 9;
         repeated string ImagesUrl = 10;
+        repeated string Tags = 11;
 }
 
 message CategoriesResponseMessage{
@@ -48,12 +49,17 @@ message CategoryByIdRequestMessage{
 message CategoryBySlugRequestMessage{
     string Slug = 1;
 }
-service CategorySrv{    
+message CategoryByTagsRequestMessage{
+    repeated string Tags = 1;
+}
+service CategorySrv{
     rpc GetAll(google.protobuf.Empty) returns (CategoriesResponseMessage);
+    rpc GetAllWithChildren(google.protobuf.Empty) returns (CategoriesResponseMessage);
     rpc GetAllShortData(google.protobuf.Empty) returns (CategoriesShortDataResponseMessage);
     rpc GetById(CategoryByIdRequestMessage) returns (CategoryResponseMessage);
     rpc GetBySlug(CategoryBySlugRequestMessage) returns (CategoryResponseMessage);
     rpc GetBySlugWithChildren(CategoryBySlugRequestMessage) returns (CategoriesResponseMessage);
+    rpc GetByFilter(CategoryByTagsRequestMessage) returns (CategoriesResponseMessage);
     rpc GetFirst(google.protobuf.Empty) returns (CategoryResponseMessage);
 }
 

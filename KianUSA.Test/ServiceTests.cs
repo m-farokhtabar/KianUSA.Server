@@ -1,5 +1,6 @@
 using KianUSA.API.Configuration;
 using KianUSA.Application.Services.Catalog;
+using KianUSA.Application.Services.Email;
 using KianUSA.Application.Services.UpdateDataByExcel;
 using System.IO;
 using System.Threading.Tasks;
@@ -18,13 +19,12 @@ namespace KianUSA.Test
                 WwwRootPath = @"F:\Project\SEPEHR\KianUsa\Project\Server\KianUSA.API\wwwroot",
                 StartIndexOfImageForUsingInCatalog = 10
             };
-
         }
         [Trait("Creator","Database Data")]
         [Fact, Priority(1)]
         public async Task ShouldBeCreatedAllCategoriesByExcelFile()
         {
-            FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\2\Categories.xlsx", FileMode.Open,FileAccess.Read);            
+            FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\5\Categories.xlsx", FileMode.Open,FileAccess.Read);            
             UpdateCateogryByExcelService Service = new();
             await Service.Update(File);
         }
@@ -32,7 +32,7 @@ namespace KianUSA.Test
         [Fact, Priority(2)]
         public async Task ShouldBeCreatedAllProductsByExcelFile()
         {
-            FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\2\Items.xlsx", FileMode.Open, FileAccess.Read);
+            FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\5\Items.xlsx", FileMode.Open, FileAccess.Read);
             UpdateProductByExcelService Service = new(ApplicationSettings);
             await Service.Update(File);
         }
@@ -40,7 +40,7 @@ namespace KianUSA.Test
         [Fact, Priority(3)]
         public async Task ShouldBeCreatedAllRolesByExcelFile()
         {
-            FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\2\Roles.xlsx", FileMode.Open, FileAccess.Read);
+            FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\5\Roles.xlsx", FileMode.Open, FileAccess.Read);
             UpdateRoleByExcelService Service = new();
             await Service.Update(File);
         }
@@ -48,16 +48,34 @@ namespace KianUSA.Test
         [Fact, Priority(4)]
         public async Task ShouldBeCreatedAllUsersByExcelFile()
         {
-            FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\2\Users.xlsx", FileMode.Open, FileAccess.Read);
+            FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\5\Users.xlsx", FileMode.Open, FileAccess.Read);
             UpdateUserByExcelService Service = new();
             await Service.Update(File);
         }
+        [Trait("Creator", "Database Data")]
+        [Fact, Priority(5)]
+        public async Task ShouldBeCreatedAllFiltersByExcelFile()
+        {
+            FileStream File = new(@"F:\Project\SEPEHR\KianUsa\Files\Excel\5\Filters.xlsx", FileMode.Open, FileAccess.Read);
+            UpdateFilterByExcelService Service = new();
+            await Service.Update(File);
+        }
         [Trait("Creator", "Catalogs")]
-        [Fact, Priority(3)]
+        [Fact, Priority(6)]
         public async Task CreateCatalogs()
         {
             CatalogService Service = new(ApplicationSettings);
             await Service.Create();
+        }
+        [Trait("Email","ContactUs")]
+        [Fact]
+        public async Task Email_SendContactUs()
+        {
+            EmailService Srv = new EmailService(new ApplicationSettings()
+            {
+                ContactUsEmailSetting = "contact-us-email-setting"
+            });
+            await Srv.SendContactUs("Mehdi", "Ahmady", "123-123-1234", "Mehdi.fr@gmail.com", "woowo asajd asdjuad  asdjaksdjasd asd adjasdbnas daskjdasd asd a asdasd.");
         }
     }
 }

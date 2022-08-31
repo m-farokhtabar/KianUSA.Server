@@ -10,11 +10,20 @@ namespace KianUSA.Application.Services.Category
         public string Slug { get; set; }
         public string ShortDescription { get; set; }
         public string Description { get; set; }
+        public PublishedCatalogTypeDto PublishedCatalogType { get; set; }
         public List<CategoryParameterDto> Parameters { get; set; }
         public List<CategoryParameterDto> Features { get; set; }
         public List<ChildCategoryDto> Children { get; set; }
         public int Order { get; set; }
+        public List<string> Tags { get; set; }
         public List<string> ImagesUrl { get; set; }
+    }
+    public enum PublishedCatalogTypeDto
+    {
+        None,
+        SingleAndMain,
+        Single,
+        Main
     }
     public class CategoryParameterDto
     {

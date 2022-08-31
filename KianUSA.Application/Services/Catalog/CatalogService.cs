@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+using KianUSA.Application.Services.Helper;
+using System;
 
 namespace KianUSA.Application.Services.Catalog
 {
@@ -24,6 +26,7 @@ namespace KianUSA.Application.Services.Catalog
         }
         public async Task Create()
         {
+            string CurrentDateTime = DateTime.Now.ToString("MM/dd/yyyy hh:mm tt");
             string CatalogsPath = appSettings.WwwRootPath + @"\Catalogs\";
             string AssetCatalogPath = appSettings.WwwRootPath + @"\Assets\Catalog\";
             Task<List<CategoryDto>> TaskCategories = categoryService.Get();
@@ -36,6 +39,8 @@ namespace KianUSA.Application.Services.Catalog
             Task<string> TaskCatalogDetailsTableRow = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogDetailsTableRow.html");
             Task<string> TaskCatalogMeasureTable = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogMeasureTable.html");
             Task<string> TaskCatalogMeasureTableRow = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogMeasureTableRow.html");
+            Task<string> TaskCatalogMeasureTablePriceHeader = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogMeasureTablePriceHeader.html");
+            Task<string> TaskCatalogMeasureTablePriceCellValue = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogMeasureTablePriceCellValue.html");
             Task<string> TaskCatalogFeaturesTable = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogFeaturesTable.html");
             Task<string> TaskCatalogFeaturesTableRow = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogFeaturesTableRow.html");
 
@@ -44,7 +49,7 @@ namespace KianUSA.Application.Services.Catalog
             await Task.WhenAll(TaskCategories, TaskProducts, TaskStyle, TaskTemplateFirstPage, TaskTemplateBody,
                                TaskTemplateSingleBanner, TaskCatalogDetailsTable, TaskCatalogDetailsTableRow,
                                TaskCatalogMeasureTable, TaskCatalogMeasureTableRow, TaskCatalogFeaturesTable,
-                               TaskCatalogFeaturesTableRow).ConfigureAwait(false);
+                               TaskCatalogFeaturesTableRow, TaskCatalogMeasureTablePriceHeader).ConfigureAwait(false);
 
             List<CategoryDto> Categories = TaskCategories.Result;
             List<ProductWithSlugCatDto> Products = TaskProducts.Result;
@@ -58,6 +63,8 @@ namespace KianUSA.Application.Services.Catalog
             string TemplateCatalogMeasureTableRow = TaskCatalogMeasureTableRow.Result;
             string TemplateCatalogFeaturesTable = TaskCatalogFeaturesTable.Result;
             string TemplateCatalogFeaturesTableRow = TaskCatalogFeaturesTableRow.Result;
+            string TemplateCatalogMeasureTablePriceCellValue = TaskCatalogMeasureTablePriceCellValue.Result;
+            string TemplateCatalogMeasureTablePriceHeader = TaskCatalogMeasureTablePriceHeader.Result;
             string TemplateCatalog = TaskTemplateCatalog.Result;
 
             await Task.Run(() =>
@@ -69,41 +76,56 @@ namespace KianUSA.Application.Services.Catalog
                 ConcurrentBag<(int Order, string Body)> Catalogs = new();
                 Parallel.ForEach(Categories, Category =>
                 {
-                    string Body = TemplateBody;
-                    using FileStream pdfDest = File.Open($"{CatalogsPath}{Category.Slug}.pdf", FileMode.Create);
-                    Body = Body.Replace("{Banner}", CreateSingleBanner(Category, TemplateSingleBanner, AssetCatalogPath));
-                    Body = Body.Replace("{DetailsTable}", CreateDetailsTable(Category, TemplateCatalogDetailsTable, TemplateCatalogDetailsTableRow));
-                    Body = Body.Replace("{FeaturesTable}", CreateFeaturesTable(Category, TemplateCatalogFeaturesTable, TemplateCatalogFeaturesTableRow));
-                    Body = Body.Replace("{MeasureTable}", CreateMeasureTable(Category, Products, TemplateCatalogMeasureTable, TemplateCatalogMeasureTableRow));
-                    Catalogs.Add((Category.Order, Body));
-                    Body = Body.Replace("{PageNumber}", "1");
-                    HtmlConverter.ConvertToPdf(TemplateCatalog.Replace("{Style}", Style).Replace("{Body}", TemplateFirstPage + Body), pdfDest);
+                    if (Category.PublishedCatalogType != PublishedCatalogTypeDto.None)
+                    {
+                        string Body = TemplateBody;
+                        using FileStream pdfDest = File.Open($"{CatalogsPath}{Category.Slug}.pdf", FileMode.Create);
+                        Body = Body.Replace("{Banner}", CreateSingleBanner(Category, TemplateSingleBanner, AssetCatalogPath));
+                        Body = Body.Replace("{DetailsTable}", CreateDetailsTable(Category, TemplateCatalogDetailsTable, TemplateCatalogDetailsTableRow));
+                        Body = Body.Replace("{FeaturesTable}", CreateFeaturesTable(Category, TemplateCatalogFeaturesTable, TemplateCatalogFeaturesTableRow));
+                        Body = Body.Replace("{MeasureTable}", CreateMeasureTable(Category, Products, TemplateCatalogMeasureTable, TemplateCatalogMeasureTableRow, TemplateCatalogMeasureTablePriceHeader, TemplateCatalogMeasureTablePriceCellValue));                        
+                        Catalogs.Add((Category.Order, Body));
+                        Body = Body.Replace("{PageNumber}", "1");
+                        Body = Body.Replace("{DateTime}", CurrentDateTime);
+                        if (Category.PublishedCatalogType != PublishedCatalogTypeDto.Main)
+                            HtmlConverter.ConvertToPdf(TemplateCatalog.Replace("{Style}", Style).Replace("{Body}", TemplateFirstPage + Body), pdfDest);
+                    }
                 });
-                using FileStream AllInOnePdf = File.Open($"{CatalogsPath}Catalog.pdf", FileMode.Create, FileAccess.ReadWrite);
-                StringBuilder All = new();
-                var SortedCatalogs = Catalogs.OrderBy(x => x.Order).ToList();
-                for (int i = 0; i < SortedCatalogs.Count; i++)
+
+                //Create MainCatalog
+                if (Catalogs?.Count > 0)
                 {
-                    All.Append(SortedCatalogs[i].Body.Replace("{PageNumber}", (i + 1).ToString()));
+                    using FileStream AllInOnePdf = File.Open($"{CatalogsPath}Catalog.pdf", FileMode.Create, FileAccess.ReadWrite);
+                    StringBuilder All = new();
+                    var SortedCatalogs = Catalogs.OrderBy(x => x.Order).ToList();
+                    for (int i = 0; i < SortedCatalogs.Count; i++)
+                    {
+                        All.Append(SortedCatalogs[i].Body.Replace("{PageNumber}", (i + 1).ToString()).Replace("{DateTime}", CurrentDateTime));
+                    }
+                    HtmlConverter.ConvertToPdf(TemplateCatalog.Replace("{Style}", Style).Replace("{Body}", TemplateFirstPage + All.ToString()), AllInOnePdf);
                 }
-                HtmlConverter.ConvertToPdf(TemplateCatalog.Replace("{Style}", Style).Replace("{Body}", TemplateFirstPage + All.ToString()), AllInOnePdf);
             });
 
         }
-        private static string CreateMeasureTable(CategoryDto Category, List<ProductWithSlugCatDto> Products, string TemplateCatalogMeasureTable, string TemplateCatalogMeasureTableRow)
+        private static string CreateMeasureTable(CategoryDto Category, List<ProductWithSlugCatDto> Products, string TemplateCatalogMeasureTable, string TemplateCatalogMeasureTableRow, string TemplateCatalogMeasureTablePriceHeader, string TemplateCatalogMeasureTablePriceCellValue)
         {
-            //TODO: the name of price columns have to come from Database
             var CurrentProducts = Products.Where(x => x.CategorySlug.Contains(Category.Slug)).OrderBy(x => x.Order).ToList();
             if (CurrentProducts?.Count > 0)
             {
+                (List<int> AcceptablePriceIndexes, string AcceptablePriceHeaders) = GetAcceptablePriceIndexesAndHeaders(CurrentProducts, TemplateCatalogMeasureTablePriceHeader);
                 string Rows = "";
                 foreach (var CurrentProduct in CurrentProducts)
                 {
+                    string AcceptablePriceCells = "";
+                    if (AcceptablePriceIndexes?.Count > 0)
+                    {
+                        foreach (var Index in AcceptablePriceIndexes)
+                            AcceptablePriceCells += TemplateCatalogMeasureTablePriceCellValue.Replace("{ProductPriceValue}", Tools.GetPriceFormat(CurrentProduct.Prices[Index].Value));
+                    }
+
                     Rows += TemplateCatalogMeasureTableRow.Replace("{Product.Name}", CurrentProduct.Name)
                                                           .Replace("{Product.ShortDescription}", CurrentProduct.ShortDescription)
-                                                          .Replace("{Product.Price1.Value}", CurrentProduct.Prices[0].Value.ToString())
-                                                          .Replace("{Product.Price2.Value}", CurrentProduct.Prices[1].Value.ToString())
-                                                          .Replace("{Product.Price3.Value}", CurrentProduct.Prices[2].Value.ToString())
+                                                          .Replace("{PriceValues}", AcceptablePriceCells)
                                                           .Replace("{Product.ItemWidth}", CurrentProduct.W.ToString())
                                                           .Replace("{Product.ItemDepth}", CurrentProduct.D.ToString())
                                                           .Replace("{Product.ItemHeight}", CurrentProduct.H.ToString())
@@ -112,9 +134,32 @@ namespace KianUSA.Application.Services.Catalog
                                                           .Replace("{Product.BoxHeight}", CurrentProduct.BoxH.ToString())
                                                           .Replace("{Product.Cube}", CurrentProduct.Cube.ToString());
                 }
-                return TemplateCatalogMeasureTable.Replace("{CatalogMeasureTableRows}", Rows);
+                return TemplateCatalogMeasureTable.Replace("{PriceHeaders}", AcceptablePriceHeaders).Replace("{CatalogMeasureTableRows}", Rows);
             }
             return "";
+        }
+        private static (List<int>, string) GetAcceptablePriceIndexesAndHeaders(List<ProductWithSlugCatDto> CurrentProducts, string TemplateHeader)
+        {
+            List<int> AcceptablePriceIndexes = null;
+            string Headers = "";
+            var FirstProduct = CurrentProducts[0];
+            if (FirstProduct.Prices?.Count > 0)
+            {
+                AcceptablePriceIndexes = new List<int>();
+                for (int i = 0; i < FirstProduct.Prices.Count; i++)
+                {
+                    foreach (var Product in CurrentProducts)
+                    {
+                        if (Product.Prices[i].Value != null)
+                        {
+                            AcceptablePriceIndexes.Add(i);
+                            Headers += TemplateHeader.Replace("{PriceHeaderName}", Product.Prices[i].Name);
+                            break;
+                        }
+                    }
+                }
+            }
+            return (AcceptablePriceIndexes, Headers);
         }
 
         private string CreateSingleBanner(CategoryDto Category, string TemplateSingleBanner, string AssetCatalogPath)
@@ -126,14 +171,14 @@ namespace KianUSA.Application.Services.Catalog
                 {
                     if (System.Convert.ToInt32(ImageUrl.Substring(ImageUrl.LastIndexOf("_") + 1, 4)) >= appSettings.StartIndexOfImageForUsingInCatalog)
                         return TemplateSingleBanner.Replace("{BannerSrc}", appSettings.WwwRootPath + ImageUrl.Replace("/", "\\"));
-                }                
-            }           
+                }
+            }
             return TemplateSingleBanner.Replace("{BannerSrc}", $"{AssetCatalogPath}Images\\kian_usa_comming_soon.jpg");
         }
 
         private static string CreateDetailsTable(CategoryDto Category, string TemplateCatalogDetailsTable, string TemplateCatalogDetailsTableRow)
         {
-            if (Category.Parameters?.Count > 0)
+            if (Category.Parameters?.Count > 0 && Category.Parameters.Any(x => !string.IsNullOrWhiteSpace(x.Value)))
             {
                 string Rows = "";
                 foreach (var Parameter in Category.Parameters)
@@ -148,7 +193,7 @@ namespace KianUSA.Application.Services.Catalog
 
         private static string CreateFeaturesTable(CategoryDto Category, string TemplateCatalogFeaturesTable, string TemplateCatalogFeaturesTableRow)
         {
-            if (Category.Features?.Count > 0)
+            if (Category.Features?.Count > 0 && Category.Features.Any(x => !string.IsNullOrWhiteSpace(x.Value)))
             {
                 string Rows = "";
                 foreach (var Feature in Category.Features)

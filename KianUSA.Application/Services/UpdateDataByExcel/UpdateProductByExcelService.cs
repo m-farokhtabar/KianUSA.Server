@@ -37,16 +37,6 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                     for (int i = 0; i < Tables[0].Rows.Count; i++)
                     {
                         var Row = Tables[0].Rows[i];
-                        int Order = 0;
-                        try
-                        {
-                            if (Row["Position"] is not null && !string.IsNullOrWhiteSpace(Row["Position"].ToString()))
-                                Order = Convert.ToInt32(Row["Position"]);
-                        }
-                        catch
-                        {
-
-                        }
                         Guid Id = Guid.NewGuid();
                         Product NewProduct = new()
                         {
@@ -67,7 +57,7 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                             Security = Row["Security"].ToString().Trim(),
                             Categories = GetCategoriesByName(Id, Row["Categories"]?.ToString(), Categories),
                             Price = CreateJsonPrices(Tables[0].Columns, Row),
-                            Order = Order,
+                            Order = UpdateByExcelHelper.GetInt32WithDefaultZero(Row["Position"]),
                             Inventory = UpdateByExcelHelper.GetDouble(Row["Inventory"])
                         };
                         Products.Add(NewProduct);

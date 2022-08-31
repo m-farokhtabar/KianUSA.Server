@@ -7,6 +7,7 @@ using KianUSA.Application.Services.Category;
 using System;
 using KianUSA.API.Helper;
 using Microsoft.AspNetCore.Authorization;
+using System.Linq;
 
 namespace KianUSA.API.Services
 {
@@ -22,6 +23,14 @@ namespace KianUSA.API.Services
         public override async Task<CategoriesResponseMessage> GetAll(Empty request, ServerCallContext context)
         {            
             List<CategoryDto> categories = await service.Get().ConfigureAwait(false);
+            CategoriesResponseMessage result = new();
+            foreach (var category in categories)
+                result.Categories.Add(MapToCategory(category));
+            return result;
+        }
+        public override async Task<CategoriesResponseMessage> GetAllWithChildren(Empty request, ServerCallContext context)
+        {
+            List<CategoryDto> categories = await service.GetWithChildren().ConfigureAwait(false);
             CategoriesResponseMessage result = new();
             foreach (var category in categories)
                 result.Categories.Add(MapToCategory(category));
@@ -53,14 +62,20 @@ namespace KianUSA.API.Services
             foreach (var category in categories)
                 result.Categories.Add(MapToCategory(category));
             return result;
-
         }
 
         public override async Task<CategoryResponseMessage> GetFirst(Empty request, ServerCallContext context)
         {
             return MapToCategory(await service.GetFirstByOrder().ConfigureAwait(false));
+        }        
+        public override async Task<CategoriesResponseMessage> GetByFilter(CategoryByTagsRequestMessage request, ServerCallContext context)
+        {
+            List<CategoryDto> categories = await service.GetByTags(request.Tags.ToList()).ConfigureAwait(false);
+            CategoriesResponseMessage result = new();
+            foreach (var category in categories)
+                result.Categories.Add(MapToCategory(category));
+            return result;
         }
-
         private CategoryResponseMessage MapToCategory(CategoryDto category)
         {            
             var Message = new CategoryResponseMessage()
@@ -74,6 +89,8 @@ namespace KianUSA.API.Services
             };
             if (category.ImagesUrl?.Count > 0)
                 Message.ImagesUrl.AddRange(category.ImagesUrl);
+            if (category.Tags?.Count > 0)
+                Message.Tags.AddRange(category.Tags);
             if (category.Parameters?.Count > 0)
             {
                 foreach (var parameter in category.Parameters)

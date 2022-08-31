@@ -29,16 +29,6 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                     for (int i = 0; i < Tables[0].Rows.Count; i++)
                     {
                         var Row = Tables[0].Rows[i];
-                        int Order = 0;
-                        try
-                        {
-                            if (Row["Position"] is not null && !string.IsNullOrWhiteSpace(Row["Position"].ToString()))
-                                Order = Convert.ToInt32(Row["Position"]);
-                        }
-                        catch
-                        {
-
-                        }
                         Category NewCategory = new()
                         {
                             Id = Guid.NewGuid(),
@@ -48,7 +38,9 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                             ShortDescription = Row["Short description"].ToString().Trim(),
                             Parameter = CreateJsonParameters(Tables[0].Columns, Row),
                             ParentsString = Row["Parents"].ToString().Trim(),
-                            Order = Order
+                            Order = UpdateByExcelHelper.GetInt32WithDefaultZero(Row["Position"]),
+                            PublishedCatalogType = (PublishedCatalogType)UpdateByExcelHelper.GetInt32WithDefaultZero(Row["PublishedCatalogType"]),
+                            Tags = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Tags"].ToString().Trim())
                         };
                         Categories.Add(NewCategory);
                     }

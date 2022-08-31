@@ -14,6 +14,7 @@ namespace KianUSA.Application.Data
         public DbSet<CategoryCategory> CategoryCategories { get; set; }
         public DbSet<Setting> Settings { get; set; }
         public DbSet<Role> Roles { get; set; }
+        public DbSet<Filter> Filters { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(UserConfig).Assembly);

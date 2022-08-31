@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -31,7 +32,8 @@ namespace KianUSA.API
             Configuration.GetSection("AppSettings").Bind(appSetting);
             services.AddSingleton<IApplicationSettings>(appSetting);
             Context.ConnectionString = Configuration.GetConnectionString("Database");
-
+            InitilizeDatabase();
+            
             var AutoRetryHangfire = new AutomaticRetryAttribute { Attempts = 3, DelaysInSeconds = new int[3] { 10, 30, 90 } };
             services.AddSingleton(AutoRetryHangfire);
             GlobalJobFilters.Filters.Add(AutoRetryHangfire);
@@ -106,6 +108,7 @@ namespace KianUSA.API
                 endpoints.MapGrpcService<EmailService>().EnableGrpcWeb().RequireCors("AllowAll");
                 endpoints.MapGrpcService<AccountService>().EnableGrpcWeb().RequireCors("AllowAll");
                 endpoints.MapGrpcService<ImportDataService>().EnableGrpcWeb().RequireCors("AllowAll");
+                endpoints.MapGrpcService<FilterService>().EnableGrpcWeb().RequireCors("AllowAll");
                 endpoints.MapGet("/", async context =>
                 {
                     await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
@@ -113,9 +116,10 @@ namespace KianUSA.API
                 endpoints.MapHangfireDashboard();
             });
         }
-        public static void ConfigureAuthentication(string SigningKey)
+        private void InitilizeDatabase()
         {
-
+            using var Db = new Context();
+            Db.Database.Migrate();
         }
     }
 }

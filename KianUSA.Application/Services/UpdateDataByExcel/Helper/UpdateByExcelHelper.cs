@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace KianUSA.Application.Services.UpdateDataByExcel.Helper
 {
@@ -44,6 +46,23 @@ namespace KianUSA.Application.Services.UpdateDataByExcel.Helper
             catch
             {
                 return null;
+            }
+
+        }
+        public static int GetInt32WithDefaultZero(object Value)
+        {
+            if (Value is null)
+                return 0;
+            string ValueString = Value.ToString();
+            if (string.IsNullOrWhiteSpace(ValueString))
+                return 0;
+            try
+            {
+                return Convert.ToInt32(ValueString);
+            }
+            catch
+            {
+                return 0;
             }
 
         }
@@ -90,6 +109,28 @@ namespace KianUSA.Application.Services.UpdateDataByExcel.Helper
                 SlugIndex++;
             }
             return RealSlug;
+        }
+        public static string ConvertStringWithbracketsToJsonArrayString(string Value)
+        {
+            List<string> Result = new List<string>();
+            if (!string.IsNullOrWhiteSpace(Value))
+            {
+                var Matches = Regex.Matches(Value, @"(\[[^\[\]]*\])");
+                if (Matches?.Count > 0)
+                {
+                    foreach (var Match in Matches)
+                    {
+                        string Expression = Match?.ToString();
+                        if (!string.IsNullOrWhiteSpace(Expression))
+                        {
+                            Expression = Expression.Replace("[", "").Replace("]", "");
+                            if (!string.IsNullOrWhiteSpace(Expression))
+                                Result.Add(Expression);
+                        }
+                    }
+                }
+            }
+            return Result.Count > 0 ? JsonSerializer.Serialize(Result.ToArray()) : null;
         }
 
     }

@@ -11,6 +11,7 @@ namespace KianUSA.Application.Entity
         public string Slug { get; set; }
         public string ShortDescription { get; set; }
         public string Description { get; set; }
+        public PublishedCatalogType PublishedCatalogType { get; set; }
         /// <summary>
         /// Json Format
         /// Parameter => Parameter [Name]
@@ -19,13 +20,27 @@ namespace KianUSA.Application.Entity
         /// </summary>
         public string Parameter { get; set; }
         public int Order { get; set; }
+        /// <summary>
+        /// [Tag][Tag][Tag]... Excel Format
+        /// ["Tag","Tag","Tag"] json => Db Format
+        /// </summary>
+        public string Tags { get; set; }
         public virtual ICollection<CategoryCategory> Parents { get; set; }
         /// <summary>
         /// this is just for filling data from excel
         /// </summary>
         [NotMapped]
         public string ParentsString { get; set; }
+    }    
+    public enum PublishedCatalogType
+    {
+        None,
+        SingleAndMain,
+        Single,
+        Main
     }
+
+
     public class CategoryParameter
     {
         public string Name { get; set; }
