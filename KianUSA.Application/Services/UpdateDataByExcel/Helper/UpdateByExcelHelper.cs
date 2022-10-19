@@ -66,6 +66,35 @@ namespace KianUSA.Application.Services.UpdateDataByExcel.Helper
             }
 
         }
+        public static bool GetBoolWithDefaultFalse(object Value)
+        {
+            if (Value is null)
+                return false;
+            string ValueString = Value.ToString();
+            if (string.IsNullOrWhiteSpace(ValueString))
+                return false;
+            try
+            {
+                var ValueNum =  Convert.ToInt32(ValueString);
+                if (ValueNum == 0)
+                    return false;
+                else
+                    return true;
+            }
+            catch
+            {
+
+            }
+            try
+            {                
+                return Convert.ToBoolean(ValueString);
+            }
+            catch
+            {
+                return false;
+            }
+
+        }
         public static double? GetDouble(object Value)
         {
             if (Value is null)

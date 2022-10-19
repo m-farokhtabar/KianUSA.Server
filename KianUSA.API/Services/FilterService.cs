@@ -34,7 +34,9 @@ namespace KianUSA.API.Services
             };
             if (Filter.Tags?.Count > 0)
                 message.Tags.AddRange(Filter.Tags);
-            
+            if (Filter.Groups?.Count > 0)
+                message.Groups.AddRange(Filter.Groups);
+
             return message;
         }
     }

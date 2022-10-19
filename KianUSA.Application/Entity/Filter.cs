@@ -12,5 +12,10 @@ namespace KianUSA.Application.Entity
         /// ["Tag","Tag","Tag"] json => Db Format
         /// </summary>
         public string Tags { get; set; }
+        /// <summary>
+        /// [Group],[Group],[Group]
+        /// ["Group","Group","Group"] json => Db Format
+        /// </summary>
+        public string Groups { get; set; }
     }
 }

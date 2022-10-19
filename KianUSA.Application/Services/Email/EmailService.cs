@@ -15,6 +15,10 @@ namespace KianUSA.Application.Services.Email
             this.settings = settings;
             Provider = new();
         }
+        public async Task SendCatalogWithLandedPrice(string UserFirstName, string UserLastName, string CustomerFullName, string CustomerEmail, string CategorySlug)
+        {
+
+        }
         /// <summary>
         /// 
         /// </summary>

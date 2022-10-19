@@ -35,6 +35,21 @@ namespace KianUSA.Application.Entity
         /// </summary>
         public bool IsGroup { get; set; }
         public virtual ICollection<CategoryProduct> Categories { get; set; }
+        /// <summary>
+        /// [Tag],[Tag],[Tag]... Excel Format
+        /// ["Tag","Tag","Tag"] json => Db Format
+        /// </summary>
+        public string Tags { get; set; }
+        /// <summary>
+        /// [Group],[Group],[Group]... Excel Format
+        /// ["Group","Group","Group"] json => Db Format
+        /// </summary>
+        public string Groups { get; set; }
+        /// <summary>
+        /// [Factory],[Factory],[Factory]... Excel Format
+        /// ["Factory","Factory","Factory"] json => Db Format
+        /// </summary>
+        public string Factories { get; set; }
     }
     public class ProductPrice
     {

@@ -15,6 +15,9 @@ namespace KianUSA.API.Services
         private readonly UpdateProductByExcelService PrdService;
         private readonly UpdateRoleByExcelService RlService;
         private readonly UpdateUserByExcelService UsrService;
+        private readonly UpdateFilterByExcelService FilterService;
+        private readonly UpdateGroupByExcelService GroupService;
+
         private readonly CatalogService CatalogService;
         private readonly Application.Services.Account.AccountService service;
         private readonly IApplicationSettings applicationSettings;
@@ -27,6 +30,8 @@ namespace KianUSA.API.Services
             PrdService = new UpdateProductByExcelService(applicationSettings);
             RlService = new UpdateRoleByExcelService();
             UsrService = new UpdateUserByExcelService();
+            FilterService = new UpdateFilterByExcelService();
+            GroupService = new UpdateGroupByExcelService();
             CatalogService = new(applicationSettings);
 
             this.applicationSettings = applicationSettings;
@@ -42,11 +47,15 @@ namespace KianUSA.API.Services
                 FileStream PrdFile = new($"{applicationSettings.ImportPath}Items.xlsx", FileMode.Open, FileAccess.Read);
                 FileStream RoleFile = new($"{applicationSettings.ImportPath}Roles.xlsx", FileMode.Open, FileAccess.Read);
                 FileStream UserFile = new($"{applicationSettings.ImportPath}Users.xlsx", FileMode.Open, FileAccess.Read);
+                FileStream FilterFile = new($"{applicationSettings.ImportPath}Filters.xlsx", FileMode.Open, FileAccess.Read);
+                FileStream GroupFile = new($"{applicationSettings.ImportPath}Groups.xlsx", FileMode.Open, FileAccess.Read);
 
                 await CatService.Update(CatFile);
                 await PrdService.Update(PrdFile);
                 await RlService.Update(RoleFile);
                 await UsrService.Update(UserFile);
+                await FilterService.Update(FilterFile);
+                await GroupService.Update(GroupFile);
 
 
                 backgroundJobClient.Enqueue(() => CatalogService.Create());

@@ -20,7 +20,7 @@ namespace KianUSA.Application.Services.Product
         private readonly ILogger logger;
         public ProductService(IApplicationSettings appSettings)
         {
-            this.appSettings = appSettings;            
+            this.appSettings = appSettings;
         }
         public async Task<ProductDto> Get(Guid Id)
         {
@@ -28,7 +28,7 @@ namespace KianUSA.Application.Services.Product
             var Model = await Db.Products.FindAsync(Id).ConfigureAwait(false);
             if (Model is null)
                 throw new ValidationException("Product does not exist.");
-            
+
             var ImagesUrl = ManageImages.GetProductImagesUrl(Model.Name, appSettings.WwwRootPath);
             return MapTo(Model, ImagesUrl);
         }
@@ -38,7 +38,7 @@ namespace KianUSA.Application.Services.Product
             var Model = await Db.Products.FirstOrDefaultAsync(x => x.Slug == Slug.ToLower()).ConfigureAwait(false);
             if (Model is null)
                 throw new ValidationException("Product does not exist.");
-            
+
             var ImagesUrl = ManageImages.GetProductImagesUrl(Model.Name, appSettings.WwwRootPath);
             return MapTo(Model, ImagesUrl);
         }
@@ -48,13 +48,68 @@ namespace KianUSA.Application.Services.Product
             var Models = await Db.Products.ToListAsync().ConfigureAwait(false);
             if (Models?.Count == 0)
                 throw new ValidationException("There are not any products.");
-            
+
             return Mapto(Models, ManageImages.GetProductsImagesUrl(appSettings.WwwRootPath));
         }
+        /// <summary>
+        /// Page Start With 0
+        /// </summary>
+        /// <param name="Groups"></param>
+        /// <param name="Tags"></param>
+        /// <param name="PageNumber"></param>
+        /// <param name="PageCount"></param>
+        /// <returns></returns>
+        public async Task<ProductsWithTotalItemDto> GetByGroupAndTagsWithPaging(List<string> Groups, List<string> Tags, int PageNumber, int PageCount)
+        {
+            var Products = await Get();
+            ConcurrentBag<ProductDto> Result = new();
+            if ((Groups is null || Groups.Count == 0) && (Tags is null || Tags.Count == 0))
+            {
+                return new ProductsWithTotalItemDto() { TotalItems = Products is not null ? Products.Count : 0, Products = Products?.OrderBy(x => x.Order).Skip(PageNumber * PageCount).Take(PageCount).ToList() };
+            }
+            else
+            {
+                //Just Tags
+                if (Tags?.Count > 0 && (Groups is null || Groups.Count == 0))
+                {
+                    Parallel.ForEach(Products, Prd =>
+                    {
+                        if (Prd.Tags?.Count > 0 && Prd.Tags.Count >= Tags.Count && Tags.All(x => Prd.Tags.Contains(x)))
+                            Result.Add(Prd);
+                    });
+                    return new ProductsWithTotalItemDto() { TotalItems = Result is not null ? Result.Count : 0, Products = Result?.OrderBy(x => x.Order).Skip(PageNumber * PageCount).Take(PageCount).ToList() };
+                }
+                //Just Groups
+                else if (Groups?.Count > 0 && (Tags is null || Tags.Count == 0))
+                {
+                    Parallel.ForEach(Products, Prd =>
+                    {
+                        if (Prd.Groups?.Count > 0 && Prd.Groups.Count >= Groups.Count && Groups.All(x=> Prd.Groups.Contains(x)))
+                            Result.Add(Prd);
+                    });
+                    return new ProductsWithTotalItemDto() { TotalItems = Result is not null ? Result.Count : 0, Products = Result?.OrderBy(x => x.Order).Skip(PageNumber * PageCount).Take(PageCount).ToList() };
+                }
+                //Groups And Tags
+                else
+                {
+                    Parallel.ForEach(Products, Prd =>
+                    {
+                        if (Prd.Groups?.Count > 0 && Prd.Groups.Count >= Groups.Count && 
+                           Prd.Tags?.Count > 0 && Prd.Tags.Count >= Tags.Count &&
+                           Groups.All(x => Prd.Groups.Contains(x)) &&
+                           Tags.All(x => Prd.Tags.Contains(x)))                                                        
+                            Result.Add(Prd);
+                    });
+                    return new ProductsWithTotalItemDto() { TotalItems = Result is not null ? Result.Count : 0, Products = Result?.OrderBy(x => x.Order).Skip(PageNumber * PageCount).Take(PageCount).ToList() };
+                }
+            }
+
+        }
+
         public async Task<List<ProductWithSlugCatDto>> GetWithCatSlug()
         {
             using var Db = new Context();
-            var Models = await Db.Products.Include(x=>x.Categories).ToListAsync().ConfigureAwait(false);
+            var Models = await Db.Products.Include(x => x.Categories).ToListAsync().ConfigureAwait(false);
             if (Models?.Count == 0)
                 throw new ValidationException("There are not any products.");
 
@@ -77,13 +132,13 @@ namespace KianUSA.Application.Services.Product
             var Models = await Db.Products.Where(x => x.Categories.Any(x => x.CategoryId == CategoryId)).ToListAsync().ConfigureAwait(false);
             if (Models?.Count == 0)
                 throw new ValidationException("In the category there are not any products.");
-            
+
             return Mapto(Models, ManageImages.GetProductsImagesUrl(appSettings.WwwRootPath));
         }
         public async Task<List<ProductDto>> GetByCategorySlug(string CategorySlug)
         {
             using var Db = new Context();
-            var Models = await Db.Products.Where(x => x.Categories.Any(x => x.CategorySlug == CategorySlug.ToLower())).ToListAsync().ConfigureAwait(false);            
+            var Models = await Db.Products.Where(x => x.Categories.Any(x => x.CategorySlug == CategorySlug.ToLower())).ToListAsync().ConfigureAwait(false);
             if (Models?.Count == 0)
                 throw new ValidationException("In the category there are not any products.");
 
@@ -92,12 +147,13 @@ namespace KianUSA.Application.Services.Product
         public async Task<List<ProductDto>> GetByCategoryIds(List<Guid> Ids)
         {
             using var Db = new Context();
-            var Models = await Db.Products.Include(x=>x.Categories).Where(x => x.Categories.Any(x => Ids.Contains(x.CategoryId))).ToListAsync().ConfigureAwait(false);
+            var Models = await Db.Products.Include(x => x.Categories).Where(x => x.Categories.Any(x => Ids.Contains(x.CategoryId))).ToListAsync().ConfigureAwait(false);
             if (Models?.Count == 0)
                 throw new ValidationException("In the category there are not any products.");
 
             return Mapto(Models, ManageImages.GetProductsImagesUrl(appSettings.WwwRootPath));
         }
+
 
         private List<ProductDto> Mapto(List<Product> Models, List<string> AllImagesUrl)
         {
@@ -137,7 +193,10 @@ namespace KianUSA.Application.Services.Product
                 ImagesUrls = ImagesUrl,
                 Slug = Model.Slug,
                 Inventory = Model.Inventory,
-                CategoryIds = Model.Categories?.Select(x => x.CategoryId).ToList()
+                CategoryIds = Model.Categories?.Select(x => x.CategoryId).ToList(),
+                Tags = !string.IsNullOrWhiteSpace(Model.Tags) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Tags) : null,
+                Groups = !string.IsNullOrWhiteSpace(Model.Groups) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Groups) : null,
+                Factories = !string.IsNullOrWhiteSpace(Model.Factories) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Factories) : null
             };
         }
         private List<ProductWithSlugCatDto> MapToDtoWithSlugCat(List<Product> Models, List<string> AllImagesUrl)
@@ -157,7 +216,7 @@ namespace KianUSA.Application.Services.Product
         {
             return new ProductWithSlugCatDto()
             {
-                CategorySlug = Model.Categories.Select(x=>x.CategorySlug).ToList(),
+                CategorySlug = Model.Categories.Select(x => x.CategorySlug).ToList(),
                 BoxD = Model.BoxD,
                 BoxH = Model.BoxH,
                 BoxW = Model.BoxW,
@@ -177,7 +236,11 @@ namespace KianUSA.Application.Services.Product
                 Securities = Tools.SecurityToList(Model.Security),
                 ImagesUrls = ImagesUrl,
                 Slug = Model.Slug,
-                Inventory = Model.Inventory
+                Inventory = Model.Inventory,
+                CategoryIds = Model.Categories?.Select(x => x.CategoryId).ToList(),
+                Tags = !string.IsNullOrWhiteSpace(Model.Tags) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Tags) : null,
+                Groups = !string.IsNullOrWhiteSpace(Model.Groups) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Groups) : null,
+                Factories = !string.IsNullOrWhiteSpace(Model.Factories) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Factories) : null
             };
         }
     }

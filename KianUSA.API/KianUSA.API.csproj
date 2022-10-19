@@ -10,6 +10,7 @@
     <None Remove="Protos\category.proto" />
     <None Remove="Protos\email.proto" />
     <None Remove="Protos\filter.proto" />
+    <None Remove="Protos\group.proto" />
     <None Remove="Protos\importdata.proto" />
     <None Remove="Protos\product.proto" />
   </ItemGroup>
@@ -20,6 +21,7 @@
     <Protobuf Include="Protos\filter.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\email.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\greet.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\group.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\importdata.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\product.proto" GrpcServices="Server" />
   </ItemGroup>

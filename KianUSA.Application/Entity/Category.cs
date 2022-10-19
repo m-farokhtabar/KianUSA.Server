@@ -21,7 +21,7 @@ namespace KianUSA.Application.Entity
         public string Parameter { get; set; }
         public int Order { get; set; }
         /// <summary>
-        /// [Tag][Tag][Tag]... Excel Format
+        /// [Tag],[Tag],[Tag]... Excel Format
         /// ["Tag","Tag","Tag"] json => Db Format
         /// </summary>
         public string Tags { get; set; }

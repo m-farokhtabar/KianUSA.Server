@@ -32,7 +32,12 @@ namespace KianUSA.Application.Data.Config
             builder.Property(x => x.Order).IsRequired(true).HasDefaultValue(0);
             builder.Property(x => x.IsGroup).IsRequired(true);
 
+            builder.Property(x => x.Tags).IsRequired(false);
+            builder.Property(x => x.Groups).IsRequired(false);
+            builder.Property(x => x.Factories).IsRequired(false);
+
             builder.HasIndex(x => x.Slug).IsUnique();
+            builder.HasIndex(x => x.Order);
         }
     }
 }

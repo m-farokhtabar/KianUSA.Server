@@ -7,6 +7,12 @@ message SendCatalogRequestMessage{
 	string CustomerEmail = 2;
 	string CategorySlug = 3;
 }
+message SendCatalogWithLandedPriceRequestMessage{
+	string CustomerFullName = 1;
+	string CustomerEmail = 2;
+	string CategorySlug = 3;
+	double Factor = 4;
+}
 message SendResponseMessage{
 	bool PutInEmailQueue = 1;
 }
@@ -19,5 +25,6 @@ message SendContactUsRequestMessage{
 }
 service EmailSrv{
 	rpc SendCatalog(SendCatalogRequestMessage) returns (SendResponseMessage);
+	rpc SendCatalogWithLandedPrice(SendCatalogWithLandedPriceRequestMessage) returns (SendResponseMessage);
 	rpc SendContactUs(SendContactUsRequestMessage) returns (SendResponseMessage);
 }

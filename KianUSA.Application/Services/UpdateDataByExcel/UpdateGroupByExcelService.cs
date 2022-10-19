@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 namespace KianUSA.Application.Services.UpdateDataByExcel
 {
     using KianUSA.Application.Entity;
-    public class UpdateFilterByExcelService
+    public class UpdateGroupByExcelService
     {
         public async Task Update(Stream stream)
         {
             if (stream is null)
                 throw new Exception("Please upload correct excel file.");
-            List<Filter> Filters = new();
+            List<Group> Groups = new();
             try
             {
                 var Tables = UpdateByExcelHelper.ReadExcel(stream);
@@ -24,17 +24,16 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                     for (int i = 0; i < Tables[0].Rows.Count; i++)
                     {                        
                         var Row = Tables[0].Rows[i];
-                        if (Filters.Find(x => x.Name.Equals(Row["Name"].ToString().Trim(), StringComparison.OrdinalIgnoreCase)) is null)
+                        if (Groups.Find(x => x.Name.Equals(Row["Name"].ToString().Trim(), StringComparison.OrdinalIgnoreCase)) is null)
                         {
-                            Filter NewFilter = new()
+                            Group NewFilter = new()
                             {
                                 Id = Guid.NewGuid(),
                                 Name = Row["Name"].ToString().Trim(),
-                                Order = UpdateByExcelHelper.GetInt32WithDefaultZero(Row["Position"]),
-                                Groups = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Groups"].ToString().Trim()),
-                                Tags = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Tags"].ToString().Trim())
+                                IsVisible = UpdateByExcelHelper.GetBoolWithDefaultFalse(Row["IsVisible"].ToString().Trim()),
+                                Order = UpdateByExcelHelper.GetInt32WithDefaultZero(Row["Order"])
                             };
-                            Filters.Add(NewFilter);
+                            Groups.Add(NewFilter);
                         }
                     }
                 }
@@ -43,9 +42,9 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
             {
                 throw new Exception("there are some errors during reading data from excel.[" + ex.Message + "]");
             }
-            await UpdateDatabase(Filters);
+            await UpdateDatabase(Groups);
         }        
-        private async Task UpdateDatabase(List<Filter> Filters)
+        private async Task UpdateDatabase(List<Group> Groups)
         {
             try
             {
@@ -53,8 +52,8 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                 using var Trans = await Db.Database.BeginTransactionAsync();
                 try
                 {
-                    Db.Database.ExecuteSqlRaw("DELETE FROM \"Filter\"");
-                    Db.Filters.AddRange(Filters);
+                    Db.Database.ExecuteSqlRaw("DELETE FROM \"Group\"");
+                    Db.Groups.AddRange(Groups);
                     await Db.SaveChangesAsync();
                     Trans.Commit();
                 }

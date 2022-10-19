@@ -24,10 +24,42 @@ namespace KianUSA.Application.Services.Catalog
             categoryService = new CategoryService(appSettings);
             productService = new ProductService(appSettings);
         }
+
         public async Task Create()
         {
-            string CurrentDateTime = DateTime.Now.ToString("MM/dd/yyyy hh:mm tt");
             string CatalogsPath = appSettings.WwwRootPath + @"\Catalogs\";
+            DirectoryInfo CatalogRoot = new(CatalogsPath);
+            foreach (var Dir in CatalogRoot.GetDirectories())
+                Dir.Delete(true);
+            foreach (var File in CatalogRoot.GetFiles())
+                File.Delete();
+
+            await Create(null);
+            await Create(new int[] { 0 });
+            await Create(new int[] { 1, 2 });
+            await Create(new int[] { 0, 1, 2 });
+        }
+
+        public async Task CreateWithLandedPrice(double Factor, string CategorySlug)
+        {
+            string CatalogsPath = appSettings.WwwRootPath + @"\Catalogs\LandedPrices\";
+            DirectoryInfo CatalogRoot = new(CatalogsPath);
+            if (CatalogRoot.Exists)
+            {
+                foreach (var Dir in CatalogRoot.GetDirectories())
+                    Dir.Delete(true);
+                foreach (var File in CatalogRoot.GetFiles())
+                    File.Delete();
+            }
+            else
+                CatalogRoot.Create();
+
+            await Create(new int[] { 0 }, Factor, CategorySlug);
+        }
+        private async Task Create(int[] PriceRange, double Factor = 0, string CategorySlug = "")
+        {
+            string CurrentDateTime = DateTime.Now.ToString("MM/dd/yyyy hh:mm tt");
+            string CatalogsPath = appSettings.WwwRootPath + @"\Catalogs\" + (Factor > 0 ? @"LandedPrices\" : "");
             string AssetCatalogPath = appSettings.WwwRootPath + @"\Assets\Catalog\";
             Task<List<CategoryDto>> TaskCategories = categoryService.Get();
             Task<List<ProductWithSlugCatDto>> TaskProducts = productService.GetWithCatSlug();
@@ -69,33 +101,52 @@ namespace KianUSA.Application.Services.Catalog
 
             await Task.Run(() =>
             {
-                DirectoryInfo CatalogRoot = new DirectoryInfo(CatalogsPath);
-                foreach (var File in CatalogRoot.GetFiles())
-                    File.Delete();
-
                 ConcurrentBag<(int Order, string Body)> Catalogs = new();
+                string LandedPrice = Factor > 0 ? "_LandedPrice_" + Factor.ToString() : "";
+                string PriceType = "";
+                string PriceTypeDirectory = "";
+                if (PriceRange?.Length > 0)
+                {
+                    PriceType = string.Join("_", PriceRange);
+                    if (PriceType != "")
+                    {
+                        if (!Directory.Exists($"{CatalogsPath}{PriceType}"))
+                            Directory.CreateDirectory($"{CatalogsPath}{PriceType}");
+                        PriceTypeDirectory = PriceType + "\\";
+                        PriceType = "_" + PriceType;
+                    }
+                }
+
                 Parallel.ForEach(Categories, Category =>
                 {
                     if (Category.PublishedCatalogType != PublishedCatalogTypeDto.None)
                     {
-                        string Body = TemplateBody;
-                        using FileStream pdfDest = File.Open($"{CatalogsPath}{Category.Slug}.pdf", FileMode.Create);
+                        string Body = TemplateBody;                        
                         Body = Body.Replace("{Banner}", CreateSingleBanner(Category, TemplateSingleBanner, AssetCatalogPath));
                         Body = Body.Replace("{DetailsTable}", CreateDetailsTable(Category, TemplateCatalogDetailsTable, TemplateCatalogDetailsTableRow));
                         Body = Body.Replace("{FeaturesTable}", CreateFeaturesTable(Category, TemplateCatalogFeaturesTable, TemplateCatalogFeaturesTableRow));
-                        Body = Body.Replace("{MeasureTable}", CreateMeasureTable(Category, Products, TemplateCatalogMeasureTable, TemplateCatalogMeasureTableRow, TemplateCatalogMeasureTablePriceHeader, TemplateCatalogMeasureTablePriceCellValue));                        
-                        Catalogs.Add((Category.Order, Body));
+                        Body = Body.Replace("{MeasureTable}", CreateMeasureTable(Category, Products, TemplateCatalogMeasureTable, TemplateCatalogMeasureTableRow, TemplateCatalogMeasureTablePriceHeader, TemplateCatalogMeasureTablePriceCellValue, PriceRange, Factor));
+                        if (Category.PublishedCatalogType == PublishedCatalogTypeDto.Main || Category.PublishedCatalogType == PublishedCatalogTypeDto.SingleAndMain)
+                        {
+                            Catalogs.Add((Category.Order, Body));
+                        }
                         Body = Body.Replace("{PageNumber}", "1");
                         Body = Body.Replace("{DateTime}", CurrentDateTime);
                         if (Category.PublishedCatalogType != PublishedCatalogTypeDto.Main)
-                            HtmlConverter.ConvertToPdf(TemplateCatalog.Replace("{Style}", Style).Replace("{Body}", TemplateFirstPage + Body), pdfDest);
+                        {
+                            if (Factor == 0 || (Factor > 0 && string.Equals(Category.Slug, CategorySlug, StringComparison.InvariantCultureIgnoreCase)))
+                            {
+                                using FileStream pdfDest = File.Open($"{CatalogsPath}{PriceTypeDirectory}{Category.Slug}{PriceType}{LandedPrice}.pdf", FileMode.Create);
+                                HtmlConverter.ConvertToPdf(TemplateCatalog.Replace("{Style}", Style).Replace("{Body}", TemplateFirstPage + Body), pdfDest);
+                            }
+                        }
                     }
                 });
 
                 //Create MainCatalog
                 if (Catalogs?.Count > 0)
-                {
-                    using FileStream AllInOnePdf = File.Open($"{CatalogsPath}Catalog.pdf", FileMode.Create, FileAccess.ReadWrite);
+                {                    
+                    using FileStream AllInOnePdf = File.Open($"{CatalogsPath}{PriceTypeDirectory}Catalog{PriceType}{LandedPrice}.pdf", FileMode.Create, FileAccess.ReadWrite);
                     StringBuilder All = new();
                     var SortedCatalogs = Catalogs.OrderBy(x => x.Order).ToList();
                     for (int i = 0; i < SortedCatalogs.Count; i++)
@@ -107,20 +158,20 @@ namespace KianUSA.Application.Services.Catalog
             });
 
         }
-        private static string CreateMeasureTable(CategoryDto Category, List<ProductWithSlugCatDto> Products, string TemplateCatalogMeasureTable, string TemplateCatalogMeasureTableRow, string TemplateCatalogMeasureTablePriceHeader, string TemplateCatalogMeasureTablePriceCellValue)
+        private static string CreateMeasureTable(CategoryDto Category, List<ProductWithSlugCatDto> Products, string TemplateCatalogMeasureTable, string TemplateCatalogMeasureTableRow, string TemplateCatalogMeasureTablePriceHeader, string TemplateCatalogMeasureTablePriceCellValue, int[] PriceRange, double Factor)
         {
             var CurrentProducts = Products.Where(x => x.CategorySlug.Contains(Category.Slug)).OrderBy(x => x.Order).ToList();
             if (CurrentProducts?.Count > 0)
             {
-                (List<int> AcceptablePriceIndexes, string AcceptablePriceHeaders) = GetAcceptablePriceIndexesAndHeaders(CurrentProducts, TemplateCatalogMeasureTablePriceHeader);
+                (List<(int Idx, string Color)> AcceptablePriceIndexesWithColors, string AcceptablePriceHeaders) = GetAcceptablePriceIndexesAndHeaders(CurrentProducts, TemplateCatalogMeasureTablePriceHeader, PriceRange, Factor);
                 string Rows = "";
                 foreach (var CurrentProduct in CurrentProducts)
                 {
                     string AcceptablePriceCells = "";
-                    if (AcceptablePriceIndexes?.Count > 0)
+                    if (AcceptablePriceIndexesWithColors?.Count > 0)
                     {
-                        foreach (var Index in AcceptablePriceIndexes)
-                            AcceptablePriceCells += TemplateCatalogMeasureTablePriceCellValue.Replace("{ProductPriceValue}", Tools.GetPriceFormat(CurrentProduct.Prices[Index].Value));
+                        foreach (var Index in AcceptablePriceIndexesWithColors)
+                            AcceptablePriceCells += TemplateCatalogMeasureTablePriceCellValue.Replace("{ProductPriceValue}", Tools.GetPriceFormat(ComputeLandedPrice(Index.Idx, CurrentProduct, Factor))).Replace("{PriceCellColor}", Index.Color);
                     }
 
                     Rows += TemplateCatalogMeasureTableRow.Replace("{Product.Name}", CurrentProduct.Name)
@@ -138,28 +189,65 @@ namespace KianUSA.Application.Services.Catalog
             }
             return "";
         }
-        private static (List<int>, string) GetAcceptablePriceIndexesAndHeaders(List<ProductWithSlugCatDto> CurrentProducts, string TemplateHeader)
+        private static decimal? ComputeLandedPrice(int Idx, ProductWithSlugCatDto CurrentProduct, double Factor)
         {
-            List<int> AcceptablePriceIndexes = null;
+            try
+            {
+                if (!CurrentProduct.Prices[Idx].Value.HasValue)
+                    return null;
+                if (Factor > 0 && CurrentProduct.Cube.HasValue && CurrentProduct.Cube > 0)
+                    return CurrentProduct.Prices[Idx].Value.Value + (decimal)(CurrentProduct.Cube.Value * Factor);
+                else
+                    return CurrentProduct.Prices[Idx].Value.Value;
+            }
+            catch
+            {
+                throw new Exception("Price PRoblem");
+            }
+        }
+        private static (List<(int Idx, string Color)>, string) GetAcceptablePriceIndexesAndHeaders(List<ProductWithSlugCatDto> CurrentProducts, string TemplateHeader, int[] PriceRange, double Factor)
+        {
+            List<(int, string)> AcceptablePriceIndexes = null;
             string Headers = "";
             var FirstProduct = CurrentProducts[0];
             if (FirstProduct.Prices?.Count > 0)
             {
-                AcceptablePriceIndexes = new List<int>();
+                AcceptablePriceIndexes = new List<(int, string)>();
                 for (int i = 0; i < FirstProduct.Prices.Count; i++)
                 {
-                    foreach (var Product in CurrentProducts)
+                    if (PriceRange is null || PriceRange.Length == 0 || (PriceRange?.Length > 0 && PriceRange.Contains(i)))
                     {
-                        if (Product.Prices[i].Value != null)
+                        foreach (var Product in CurrentProducts)
                         {
-                            AcceptablePriceIndexes.Add(i);
-                            Headers += TemplateHeader.Replace("{PriceHeaderName}", Product.Prices[i].Name);
-                            break;
+                            if (Product.Prices[i].Value != null)
+                            {
+                                AcceptablePriceIndexes.Add((i, GetPriceColor(i, Factor)));
+                                Headers += TemplateHeader.Replace("{PriceHeaderName}", Product.Prices[i].Name).Replace("{PriceHeaderColor}", GetPriceColor(i, Factor));
+                                break;
+                            }
                         }
                     }
                 }
             }
             return (AcceptablePriceIndexes, Headers);
+        }
+
+        private static string GetPriceColor(int Index, double Factor)
+        {
+            switch (Index)
+            {
+                case 0:
+                    if (Factor > 0)
+                        return "background-color:#fbf1cc;color:black;";
+                    else
+                        return "background-color:#b4c4e7;color:black;";
+                case 1:
+                case 2:
+                    return "background-color:#a9cd8d;color:black;";
+                default:
+                    break;
+            }
+            return "";
         }
 
         private string CreateSingleBanner(CategoryDto Category, string TemplateSingleBanner, string AssetCatalogPath)

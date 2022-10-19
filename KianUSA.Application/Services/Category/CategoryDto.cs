@@ -20,10 +20,10 @@ namespace KianUSA.Application.Services.Category
     }
     public enum PublishedCatalogTypeDto
     {
-        None,
-        SingleAndMain,
-        Single,
-        Main
+        None = 0,
+        SingleAndMain = 1,
+        Single = 2,
+        Main = 3
     }
     public class CategoryParameterDto
     {

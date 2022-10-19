@@ -12,6 +12,7 @@ namespace KianUSA.Application.Data.Config
             builder.HasKey(x => x.Id);
             builder.Property(x => x.Name).IsRequired(true).HasMaxLength(200);
             builder.Property(x => x.Tags).IsRequired(true);
+            builder.Property(x => x.Groups).IsRequired(false);
             builder.Property(x => x.Order).IsRequired(true).HasDefaultValue(0);
             
             builder.HasIndex(x => x.Name).IsUnique();

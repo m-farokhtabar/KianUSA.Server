@@ -32,7 +32,10 @@ namespace KianUSA.Application.Services.Product
         /// False => means it is a regular product
         /// true => means it is a group of products that have a behaviour like a product
         /// </summary>
-        public bool IsGroup { get; set; }        
+        public bool IsGroup { get; set; }
+        public List<string> Tags { get; set; }
+        public List<string> Groups { get; set; }
+        public List<string> Factories { get; set; }
     }
     public class ProductPriceDto
     {

@@ -15,6 +15,7 @@ namespace KianUSA.Application.Data
         public DbSet<Setting> Settings { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Filter> Filters { get; set; }
+        public DbSet<Group> Groups { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(UserConfig).Assembly);

@@ -8,6 +8,7 @@ message FilterResponseMessage{
     string Name =2;
     int32  Order =3;
     repeated string Tags =4;
+    repeated string Groups =5;
 }
 message FiltersResponseMessage{
     repeated FilterResponseMessage Filters = 1;

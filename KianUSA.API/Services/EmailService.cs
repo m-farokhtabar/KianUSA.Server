@@ -33,6 +33,20 @@ namespace KianUSA.API.Services
                 return await Task.FromResult(new SendResponseMessage() { PutInEmailQueue = false });
             }
         }
+        public override async Task<SendResponseMessage> SendCatalogWithLandedPrice(SendCatalogWithLandedPriceRequestMessage request, ServerCallContext context)
+        {
+            try
+            {
+                var Name = context.GetHttpContext().User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.GivenName).Value;
+                var LastName = context.GetHttpContext().User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Surname).Value;
+                backgroundJobClient.Enqueue(() => service.SendCatalog(Name, LastName, request.CustomerFullName, request.CustomerEmail, request.CategorySlug));
+                return await Task.FromResult(new SendResponseMessage() { PutInEmailQueue = true });
+            }
+            catch
+            {
+                return await Task.FromResult(new SendResponseMessage() { PutInEmailQueue = false });
+            }
+        }
         [AllowAnonymous]
         public override async Task<SendResponseMessage> SendContactUs(SendContactUsRequestMessage request, ServerCallContext context)
         {

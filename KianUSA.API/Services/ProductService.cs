@@ -15,7 +15,7 @@ namespace KianUSA.API.Services
     [Authorize]
     public class ProductService : ProductSrv.ProductSrvBase
     {
-        private readonly Application.Services.Product.ProductService service;        
+        private readonly Application.Services.Product.ProductService service;
         private readonly ILogger<ProductService> logger;
         public ProductService(IApplicationSettings applicationSettings, ILogger<ProductService> logger)
         {
@@ -28,6 +28,15 @@ namespace KianUSA.API.Services
             ProductsResponseMessage result = new();
             foreach (var product in products)
                 result.Products.Add(MapToProduct(product));
+            return result;
+        }
+        public override async Task<ProductsWithTotalItemsResponseMessage> GetByGroupsTagsWithPaging(ProductsByGroupsTagsWithPagingRequestMessage request, ServerCallContext context)
+        {
+            ProductsWithTotalItemDto products = await service.GetByGroupAndTagsWithPaging(request.Groups?.ToList(), request.Tags?.ToList(), request.PageNumber, request.PageCount).ConfigureAwait(false);
+            ProductsWithTotalItemsResponseMessage result = new();
+            foreach (var product in products.Products)
+                result.Products.Add(MapToProduct(product));
+            result.TotalItems = products.TotalItems;
             return result;
         }
 
@@ -49,7 +58,7 @@ namespace KianUSA.API.Services
             return result;
         }
         public override async Task<ProductsResponseMessage> GetByCategoryIds(ProductsByCategoryIdsRequestMessage request, ServerCallContext context)
-        {            
+        {
             List<ProductDto> products = await service.GetByCategoryIds(request.CategoryIds.ToList().ConvertAll(x => Guid.Parse(x))).ConfigureAwait(false);
             ProductsResponseMessage result = new();
             foreach (var product in products)
@@ -90,14 +99,14 @@ namespace KianUSA.API.Services
                 BoxD = product.BoxD,
                 BoxH = product.BoxH,
                 BoxW = product.BoxW,
-                Cube  =product.Cube,
+                Cube = product.Cube,
                 D = product.D,
                 H = product.H,
                 Inventory = product.Inventory,
                 IsGroup = product.IsGroup,
                 W = product.W,
                 Weight = product.Weight,
-                WHQTY = product.WHQTY                
+                WHQTY = product.WHQTY
             };
             if (product.CategoryIds?.Count > 0)
                 Message.CategoryIds.AddRange(product.CategoryIds.ConvertAll(x => x.ToString()));
@@ -106,6 +115,14 @@ namespace KianUSA.API.Services
                 Message.ImagesUrls.AddRange(product.ImagesUrls);
             if (product.Securities?.Count > 0)
                 Message.Securities.AddRange(product.Securities);
+
+            if (product.Tags?.Count > 0)
+                Message.Tags.AddRange(product.Tags);
+            if (product.Groups?.Count > 0)
+                Message.Groups.AddRange(product.Groups);
+            if (product.Factories?.Count > 0)
+                Message.Factories.AddRange(product.Factories);
+
             if (product.Prices?.Count > 0)
             {
                 foreach (var parameter in product.Prices)

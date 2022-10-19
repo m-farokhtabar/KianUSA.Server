@@ -58,7 +58,10 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                             Categories = GetCategoriesByName(Id, Row["Categories"]?.ToString(), Categories),
                             Price = CreateJsonPrices(Tables[0].Columns, Row),
                             Order = UpdateByExcelHelper.GetInt32WithDefaultZero(Row["Position"]),
-                            Inventory = UpdateByExcelHelper.GetDouble(Row["Inventory"])
+                            Inventory = UpdateByExcelHelper.GetDouble(Row["Inventory"]),
+                            Groups = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Groups"].ToString().Trim()),
+                            Factories = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Factories"].ToString().Trim()),
+                            Tags = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Tags"].ToString().Trim())
                         };
                         Products.Add(NewProduct);
                     }

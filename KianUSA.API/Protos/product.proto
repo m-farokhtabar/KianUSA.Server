@@ -29,6 +29,9 @@ import "google/protobuf/wrappers.proto";
         repeated string ImagesUrls = 19;
         bool IsGroup = 20;
         repeated string CategoryIds = 21;
+        repeated string Tags =22;
+        repeated string Groups =23;
+        repeated string Factories =24;        
     }
     message ProductPriceResponseMessage
     {
@@ -37,6 +40,10 @@ import "google/protobuf/wrappers.proto";
     }
     message ProductsResponseMessage{
         repeated ProductResponseMessage Products = 1;
+    }
+    message ProductsWithTotalItemsResponseMessage{
+        repeated ProductResponseMessage Products = 1;
+        int32 TotalItems = 2;
     }
     message ProductByIdRequestMessage{
         string Id = 1;
@@ -53,9 +60,16 @@ import "google/protobuf/wrappers.proto";
     message ProductsByCategorySlugRequestMessage{
         string CategorySlug = 1;
     }
+    message ProductsByGroupsTagsWithPagingRequestMessage{
+        repeated string Groups = 1;
+        repeated string Tags = 2;
+        int32 PageNumber = 3;
+        int32 PageCount = 4;
+    }
 
     service ProductSrv{
         rpc GetAll(google.protobuf.Empty) returns(ProductsResponseMessage);
+        rpc GetByGroupsTagsWithPaging(ProductsByGroupsTagsWithPagingRequestMessage) returns(ProductsWithTotalItemsResponseMessage);
         rpc GetByCategoryId(ProductsByCategoryIdRequestMessage) returns(ProductsResponseMessage);        
         rpc GetByCategoryIds(ProductsByCategoryIdsRequestMessage) returns(ProductsResponseMessage);
         rpc GetByCategorySlug(ProductsByCategorySlugRequestMessage) returns(ProductsResponseMessage);
@@ -63,4 +77,6 @@ import "google/protobuf/wrappers.proto";
         
         rpc GetById(ProductByIdRequestMessage) returns(ProductResponseMessage);
         rpc GetBySlug(ProductBySlugRequestMessage) returns(ProductResponseMessage);
+        
+        
     }
