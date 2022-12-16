@@ -21,7 +21,7 @@ namespace KianUSA.Application.Services.Account
             if (User.Password != Tools.HashData(Password))
                 throw new Exception("password is wrong");
             var RolesId = User.Roles.Select(x => x.RoleId).ToList();
-            var Roles = await Db.Roles.Where(x => RolesId.Contains(x.Id)).ToListAsync();            
+            var Roles = await Db.Roles.Where(x => RolesId.Contains(x.Id)).ToListAsync();
             if (Roles?.Count == 0)
                 throw new Exception("user is not valid");
 
@@ -31,9 +31,9 @@ namespace KianUSA.Application.Services.Account
                 Email = User.Email,
                 Name = User.Name,
                 LastName = User.LastName,
-                Roles = Roles.Select(x=>x.Name).ToList(),
-                Securities = Tools.SecurityToList(User.Security),
-                Security = User.Security
+                Roles = Roles.Select(x => x.Name).ToList(),
+                Pages = Roles.Select(x => x.Pages).ToList(),
+                Prices = Roles.Select(x => x.Prices).ToList()
             };
         }
     }

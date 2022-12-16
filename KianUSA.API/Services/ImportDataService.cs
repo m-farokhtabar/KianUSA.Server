@@ -11,14 +11,14 @@ namespace KianUSA.API.Services
 {
     public class ImportDataService : ImportDataSrv.ImportDataSrvBase
     {
-        private readonly UpdateCateogryByExcelService CatService;
+        private readonly UpdateCategoryByExcelService CatService;
         private readonly UpdateProductByExcelService PrdService;
         private readonly UpdateRoleByExcelService RlService;
         private readonly UpdateUserByExcelService UsrService;
         private readonly UpdateFilterByExcelService FilterService;
         private readonly UpdateGroupByExcelService GroupService;
 
-        private readonly CatalogService CatalogService;
+        private readonly KianUSA.Application.Services.Catalog.CatalogService CatalogService;
         private readonly Application.Services.Account.AccountService service;
         private readonly IApplicationSettings applicationSettings;
         private readonly IBackgroundJobClient backgroundJobClient;
@@ -26,7 +26,7 @@ namespace KianUSA.API.Services
         public ImportDataService(IApplicationSettings applicationSettings, IBackgroundJobClient backgroundJobClient)
         {
             service = new Application.Services.Account.AccountService();
-            CatService = new UpdateCateogryByExcelService();
+            CatService = new UpdateCategoryByExcelService();
             PrdService = new UpdateProductByExcelService(applicationSettings);
             RlService = new UpdateRoleByExcelService();
             UsrService = new UpdateUserByExcelService();
@@ -57,7 +57,7 @@ namespace KianUSA.API.Services
                 await FilterService.Update(FilterFile);
                 await GroupService.Update(GroupFile);
 
-
+                
                 backgroundJobClient.Enqueue(() => CatalogService.Create());
                 return await Task.FromResult(new ByFilesResponse() { IsSuccessful = true });
             }

@@ -187,7 +187,8 @@ namespace KianUSA.Application.Services.Category
                 ImagesUrl = ImagesUrl,
                 Children = Children?.ConvertAll(x => new ChildCategoryDto() { Id = x.CategoryId, Slug = x.CategorySlug, Order = x.Order }),
                 PublishedCatalogType = (PublishedCatalogTypeDto)(int)Model.PublishedCatalogType,
-                Tags = !string.IsNullOrWhiteSpace(Model.Tags) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Tags) : null
+                Tags = !string.IsNullOrWhiteSpace(Model.Tags) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Tags) : null,
+                Securities = !string.IsNullOrWhiteSpace(Model.Security) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Security) : null
             };
         }
     }

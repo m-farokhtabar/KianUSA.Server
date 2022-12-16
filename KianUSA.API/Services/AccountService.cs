@@ -33,11 +33,15 @@ namespace KianUSA.API.Services
             claims.Add(new(ClaimTypes.NameIdentifier, account.Id.ToString()));
             claims.Add(new(ClaimTypes.Name, account.Email));
             claims.Add(new(ClaimTypes.GivenName, account.Name));
-            claims.Add(new(ClaimTypes.Surname, account.LastName));
-            claims.Add(new(ClaimTypes.Sid, account.Security));
+            claims.Add(new(ClaimTypes.Surname, account.LastName));            
+            foreach (var Page in account.Pages)
+                if (Page is not null)
+                    claims.Add(new Claim("Page", Page));
+            
 
             foreach (var Role in account.Roles)
-                claims.Add(new(ClaimTypes.Role, Role));
+                if (Role is not null)
+                    claims.Add(new(ClaimTypes.Role, Role));
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {

@@ -12,11 +12,12 @@ namespace KianUSA.Application.Data.Config
             builder.Property(x => x.Name).IsRequired(true).HasMaxLength(200);
             builder.Property(x => x.Slug).IsRequired(true).HasMaxLength(200);
             builder.Property(x => x.ShortDescription).IsRequired(false).HasMaxLength(500);
-            builder.Property(x => x.Description).IsRequired(false).HasMaxLength(1000);
+            builder.Property(x => x.Description).IsRequired(false).HasMaxLength(2000);
             builder.Property(x => x.Parameter).IsRequired(false).HasMaxLength(5000);
             builder.Property(x => x.Order).IsRequired(true).HasDefaultValue(0);
             builder.Property(x => x.PublishedCatalogType).IsRequired(true);
-            builder.Property(x => x.Tags).IsRequired(false).HasMaxLength(1000);
+            builder.Property(x => x.Tags).IsRequired(false).HasMaxLength(2000);
+            builder.Property(x => x.Security).IsRequired(false).HasMaxLength(2000);
 
             builder.HasIndex(x => x.Slug).IsUnique();
             builder.HasIndex(x => x.Order);

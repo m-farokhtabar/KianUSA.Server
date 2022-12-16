@@ -14,7 +14,7 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
     using System.Linq;
     using System.Text.RegularExpressions;
 
-    public class UpdateCateogryByExcelService
+    public class UpdateCategoryByExcelService
     {
         public async Task Update(Stream stream)
         {
@@ -40,7 +40,8 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                             ParentsString = Row["Parents"].ToString().Trim(),
                             Order = UpdateByExcelHelper.GetInt32WithDefaultZero(Row["Position"]),
                             PublishedCatalogType = (PublishedCatalogType)UpdateByExcelHelper.GetInt32WithDefaultZero(Row["PublishedCatalogType"]),
-                            Tags = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Tags"].ToString().Trim())
+                            Tags = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Tags"].ToString().Trim()),
+                            Security = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Security"].ToString().Trim()),
                         };
                         Categories.Add(NewCategory);
                     }

@@ -17,6 +17,7 @@ namespace KianUSA.Application.Services.Category
         public int Order { get; set; }
         public List<string> Tags { get; set; }
         public List<string> ImagesUrl { get; set; }
+        public List<string> Securities { get; set; }
     }
     public enum PublishedCatalogTypeDto
     {

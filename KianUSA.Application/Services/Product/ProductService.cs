@@ -51,6 +51,11 @@ namespace KianUSA.Application.Services.Product
 
             return Mapto(Models, ManageImages.GetProductsImagesUrl(appSettings.WwwRootPath));
         }
+        public async Task<List<Product>> GetModels()
+        {
+            using var Db = new Context();
+            return await Db.Products.ToListAsync().ConfigureAwait(false);
+        }
         /// <summary>
         /// Page Start With 0
         /// </summary>
@@ -58,14 +63,18 @@ namespace KianUSA.Application.Services.Product
         /// <param name="Tags"></param>
         /// <param name="PageNumber"></param>
         /// <param name="PageCount"></param>
+        /// <param name="IsDesc"></param>
         /// <returns></returns>
-        public async Task<ProductsWithTotalItemDto> GetByGroupAndTagsWithPaging(List<string> Groups, List<string> Tags, int PageNumber, int PageCount)
+        public async Task<ProductsWithTotalItemDto> GetByGroupAndTagsWithPaging(List<string> Groups, List<string> Tags, int PageNumber, int PageCount, bool IsAscOrder = true)
         {
             var Products = await Get();
             ConcurrentBag<ProductDto> Result = new();
             if ((Groups is null || Groups.Count == 0) && (Tags is null || Tags.Count == 0))
             {
-                return new ProductsWithTotalItemDto() { TotalItems = Products is not null ? Products.Count : 0, Products = Products?.OrderBy(x => x.Order).Skip(PageNumber * PageCount).Take(PageCount).ToList() };
+                if (IsAscOrder)
+                    return new ProductsWithTotalItemDto() { TotalItems = Products is not null ? Products.Count : 0, Products = Products?.OrderBy(x => x.Order).Skip(PageNumber * PageCount).Take(PageCount).ToList() };
+                else
+                    return new ProductsWithTotalItemDto() { TotalItems = Products is not null ? Products.Count : 0, Products = Products?.OrderByDescending(x => x.Order).Skip(PageNumber * PageCount).Take(PageCount).ToList() };
             }
             else
             {
@@ -77,7 +86,10 @@ namespace KianUSA.Application.Services.Product
                         if (Prd.Tags?.Count > 0 && Prd.Tags.Count >= Tags.Count && Tags.All(x => Prd.Tags.Contains(x)))
                             Result.Add(Prd);
                     });
-                    return new ProductsWithTotalItemDto() { TotalItems = Result is not null ? Result.Count : 0, Products = Result?.OrderBy(x => x.Order).Skip(PageNumber * PageCount).Take(PageCount).ToList() };
+                    if (IsAscOrder)
+                        return new ProductsWithTotalItemDto() { TotalItems = Result is not null ? Result.Count : 0, Products = Result?.OrderBy(x => x.Order).Skip(PageNumber * PageCount).Take(PageCount).ToList() };
+                    else
+                        return new ProductsWithTotalItemDto() { TotalItems = Result is not null ? Result.Count : 0, Products = Result?.OrderByDescending(x => x.Order).Skip(PageNumber * PageCount).Take(PageCount).ToList() };
                 }
                 //Just Groups
                 else if (Groups?.Count > 0 && (Tags is null || Tags.Count == 0))
@@ -87,20 +99,26 @@ namespace KianUSA.Application.Services.Product
                         if (Prd.Groups?.Count > 0 && Prd.Groups.Count >= Groups.Count && Groups.All(x=> Prd.Groups.Contains(x)))
                             Result.Add(Prd);
                     });
-                    return new ProductsWithTotalItemDto() { TotalItems = Result is not null ? Result.Count : 0, Products = Result?.OrderBy(x => x.Order).Skip(PageNumber * PageCount).Take(PageCount).ToList() };
+                    if (IsAscOrder)
+                        return new ProductsWithTotalItemDto() { TotalItems = Result is not null ? Result.Count : 0, Products = Result?.OrderBy(x => x.Order).Skip(PageNumber * PageCount).Take(PageCount).ToList() };
+                    else
+                        return new ProductsWithTotalItemDto() { TotalItems = Result is not null ? Result.Count : 0, Products = Result?.OrderByDescending(x => x.Order).Skip(PageNumber * PageCount).Take(PageCount).ToList() };
                 }
                 //Groups And Tags
                 else
                 {
                     Parallel.ForEach(Products, Prd =>
                     {
-                        if (Prd.Groups?.Count > 0 && Prd.Groups.Count >= Groups.Count && 
+                        if (Prd.Groups?.Count > 0 && Prd.Groups.Count >= Groups.Count &&
                            Prd.Tags?.Count > 0 && Prd.Tags.Count >= Tags.Count &&
                            Groups.All(x => Prd.Groups.Contains(x)) &&
                            Tags.All(x => Prd.Tags.Contains(x)))                                                        
                             Result.Add(Prd);
                     });
-                    return new ProductsWithTotalItemDto() { TotalItems = Result is not null ? Result.Count : 0, Products = Result?.OrderBy(x => x.Order).Skip(PageNumber * PageCount).Take(PageCount).ToList() };
+                    if (IsAscOrder)
+                        return new ProductsWithTotalItemDto() { TotalItems = Result is not null ? Result.Count : 0, Products = Result?.OrderBy(x => x.Order).Skip(PageNumber * PageCount).Take(PageCount).ToList() };
+                    else
+                        return new ProductsWithTotalItemDto() { TotalItems = Result is not null ? Result.Count : 0, Products = Result?.OrderByDescending(x => x.Order).Skip(PageNumber * PageCount).Take(PageCount).ToList() };
                 }
             }
 
@@ -189,14 +207,17 @@ namespace KianUSA.Application.Services.Product
                 Weight = Model.Weight,
                 WHQTY = Model.WHQTY,
                 Prices = !string.IsNullOrWhiteSpace(Model.Price) ? System.Text.Json.JsonSerializer.Deserialize<List<ProductPriceDto>>(Model.Price) : null,
-                Securities = Tools.SecurityToList(Model.Security),
+                Securities = !string.IsNullOrWhiteSpace(Model.Security) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Security) : null,                
                 ImagesUrls = ImagesUrl,
                 Slug = Model.Slug,
                 Inventory = Model.Inventory,
                 CategoryIds = Model.Categories?.Select(x => x.CategoryId).ToList(),
                 Tags = !string.IsNullOrWhiteSpace(Model.Tags) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Tags) : null,
                 Groups = !string.IsNullOrWhiteSpace(Model.Groups) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Groups) : null,
-                Factories = !string.IsNullOrWhiteSpace(Model.Factories) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Factories) : null
+                Factories = !string.IsNullOrWhiteSpace(Model.Factories) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Factories) : null,
+                ComplexItemPieces = !string.IsNullOrWhiteSpace(Model.ComplexItemPieces) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.ComplexItemPieces) : null,
+                ComplexItemPriority = Model.ComplexItemPriority,
+                PiecesCount = Model.PiecesCount
             };
         }
         private List<ProductWithSlugCatDto> MapToDtoWithSlugCat(List<Product> Models, List<string> AllImagesUrl)
@@ -233,14 +254,17 @@ namespace KianUSA.Application.Services.Product
                 Weight = Model.Weight,
                 WHQTY = Model.WHQTY,
                 Prices = !string.IsNullOrWhiteSpace(Model.Price) ? System.Text.Json.JsonSerializer.Deserialize<List<ProductPriceDto>>(Model.Price) : null,
-                Securities = Tools.SecurityToList(Model.Security),
+                Securities = !string.IsNullOrWhiteSpace(Model.Security) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Security) : null,
                 ImagesUrls = ImagesUrl,
                 Slug = Model.Slug,
                 Inventory = Model.Inventory,
                 CategoryIds = Model.Categories?.Select(x => x.CategoryId).ToList(),
                 Tags = !string.IsNullOrWhiteSpace(Model.Tags) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Tags) : null,
                 Groups = !string.IsNullOrWhiteSpace(Model.Groups) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Groups) : null,
-                Factories = !string.IsNullOrWhiteSpace(Model.Factories) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Factories) : null
+                Factories = !string.IsNullOrWhiteSpace(Model.Factories) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Factories) : null,
+                ComplexItemPieces = !string.IsNullOrWhiteSpace(Model.ComplexItemPieces) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.ComplexItemPieces) : null,
+                ComplexItemPriority = Model.ComplexItemPriority,
+                PiecesCount = Model.PiecesCount
             };
         }
     }

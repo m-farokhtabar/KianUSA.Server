@@ -32,7 +32,7 @@ namespace KianUSA.API.Services
         }
         public override async Task<ProductsWithTotalItemsResponseMessage> GetByGroupsTagsWithPaging(ProductsByGroupsTagsWithPagingRequestMessage request, ServerCallContext context)
         {
-            ProductsWithTotalItemDto products = await service.GetByGroupAndTagsWithPaging(request.Groups?.ToList(), request.Tags?.ToList(), request.PageNumber, request.PageCount).ConfigureAwait(false);
+            ProductsWithTotalItemDto products = await service.GetByGroupAndTagsWithPaging(request.Groups?.ToList(), request.Tags?.ToList(), request.PageNumber, request.PageCount, request.IsAcsOrder).ConfigureAwait(false);
             ProductsWithTotalItemsResponseMessage result = new();
             foreach (var product in products.Products)
                 result.Products.Add(MapToProduct(product));
@@ -106,7 +106,9 @@ namespace KianUSA.API.Services
                 IsGroup = product.IsGroup,
                 W = product.W,
                 Weight = product.Weight,
-                WHQTY = product.WHQTY
+                WHQTY = product.WHQTY,
+                PiecesCount = product.PiecesCount,
+                ComplexItemPriority = product.ComplexItemPriority                
             };
             if (product.CategoryIds?.Count > 0)
                 Message.CategoryIds.AddRange(product.CategoryIds.ConvertAll(x => x.ToString()));
@@ -122,6 +124,9 @@ namespace KianUSA.API.Services
                 Message.Groups.AddRange(product.Groups);
             if (product.Factories?.Count > 0)
                 Message.Factories.AddRange(product.Factories);
+            if (product.ComplexItemPieces?.Count > 0)
+                Message.ComplexItemPieces.AddRange(product.ComplexItemPieces);
+
 
             if (product.Prices?.Count > 0)
             {

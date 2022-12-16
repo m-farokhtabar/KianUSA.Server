@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "KianUSA.API.Services";
+
+message LandedPriceCatalogRequestMessage{
+	string CatalogSlug = 1;
+	double Factor = 2;
+}
+message CatalogResponseMessage{
+	string UrlCurrent = 1;
+	string UrlAll = 2;
+}
+service CatalogSrv{
+	rpc GetLandedPriceCatalogUrl(LandedPriceCatalogRequestMessage) returns (CatalogResponseMessage);
+}

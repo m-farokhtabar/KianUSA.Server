@@ -22,9 +22,10 @@ namespace KianUSA.Application.Entity
         public double? Weight { get; set; }
         public double? BoxW { get; set; }
         public double? BoxD { get; set; }
-        public double? BoxH { get; set; } 
+        public double? BoxH { get; set; }
         /// <summary>
-        /// A,B,C
+        /// [RoleName],[RoleName],[RoleName]... Excel Format
+        /// ["RoleName","RoleName","RoleName"] json => Db Format
         /// </summary>
         public string Security { get; set; }
         public string WHQTY { get; set; }
@@ -50,6 +51,21 @@ namespace KianUSA.Application.Entity
         /// ["Factory","Factory","Factory"] json => Db Format
         /// </summary>
         public string Factories { get; set; }
+        /// <summary>
+        /// تعداد اجزا
+        /// </summary>
+        public int PiecesCount { get; set; }
+        /// <summary>
+        /// اجزا این محصول
+        /// دقت شود لیست محصولات است
+        /// [17-00-10G],[17-00-25R]
+        /// ["17-00-10G","17-00-25R"] json => Db Format
+        /// </summary>
+        public string ComplexItemPieces { get; set; }
+        /// <summary>
+        /// اولویت اجاد محصولات پیچیده
+        /// </summary>
+        public int ComplexItemPriority { get; set; }
     }
     public class ProductPrice
     {

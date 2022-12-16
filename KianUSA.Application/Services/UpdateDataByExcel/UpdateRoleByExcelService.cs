@@ -31,6 +31,7 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                             {
                                 Id = Guid.NewGuid(),
                                 Name = Row["Name"].ToString().Trim(),
+                                Prices = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayInt(Row["Prices"].ToString().Trim()),
                                 Pages = CreatesPages(Tables[0].Columns, Row)
                             };
                             Roles.Add(NewRole);                            
@@ -82,7 +83,7 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                     int? PagePermission = UpdateByExcelHelper.GetInt32(Row[ColumnName]);
                     if (PagePermission.HasValue && PagePermission == 1)
                     {
-                        Pages += $"{ColumnName.Replace("Page", "", StringComparison.OrdinalIgnoreCase).Trim()}[R,W,E,D],";
+                        Pages += $"{ColumnName.Replace("Page", "", StringComparison.OrdinalIgnoreCase).Trim()}[RWED],";
                     }
                 }
             }

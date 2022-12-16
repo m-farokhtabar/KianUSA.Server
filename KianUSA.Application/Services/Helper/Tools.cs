@@ -15,7 +15,7 @@ namespace KianUSA.Application.Services.Helper
 
             return Convert.ToHexString(hashBytes);
         }
-        public static List<string> SecurityToList(string Security) => string.IsNullOrWhiteSpace(Security) ? null : Security.Split(",").ToList();
+        //public static List<string> SecurityToList(string Security) => string.IsNullOrWhiteSpace(Security) ? null : Security.Split(",").ToList();
 
         public static bool EmailIsValid(string email)
         {
@@ -31,9 +31,13 @@ namespace KianUSA.Application.Services.Helper
         public static string GetPriceFormat(decimal? Value)
         {
             if (Value.HasValue)
-                return Value.Value.ToString("C");
+                return "$" + Decimal.Ceiling(Value.Value).ToString("G29");
             else
                 return "";
+            //if (Value.HasValue)
+            //    return Value.Value.ToString("C");
+            //else
+            //    return "";
         }
     }
 }

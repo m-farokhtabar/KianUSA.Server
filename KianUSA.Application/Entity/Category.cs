@@ -25,6 +25,11 @@ namespace KianUSA.Application.Entity
         /// ["Tag","Tag","Tag"] json => Db Format
         /// </summary>
         public string Tags { get; set; }
+        /// <summary>
+        /// [RoleName],[RoleName],[RoleName]... Excel Format
+        /// ["RoleName","RoleName","RoleName"] json => Db Format
+        /// </summary>
+        public string Security { get; set; }
         public virtual ICollection<CategoryCategory> Parents { get; set; }
         /// <summary>
         /// this is just for filling data from excel

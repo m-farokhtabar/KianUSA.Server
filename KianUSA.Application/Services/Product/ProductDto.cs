@@ -36,6 +36,21 @@ namespace KianUSA.Application.Services.Product
         public List<string> Tags { get; set; }
         public List<string> Groups { get; set; }
         public List<string> Factories { get; set; }
+        /// <summary>
+        /// تعداد اجزا
+        /// </summary>
+        public int PiecesCount { get; set; }
+        /// <summary>
+        /// اجزا این محصول
+        /// دقت شود لیست محصولات است
+        /// [17-00-10G],[17-00-25R]
+        /// ["17-00-10G","17-00-25R"] json => Db Format
+        /// </summary>
+        public List<string> ComplexItemPieces { get; set; }
+        /// <summary>
+        /// اولویت اجاد محصولات پیچیده
+        /// </summary>
+        public int ComplexItemPriority { get; set; }
     }
     public class ProductPriceDto
     {

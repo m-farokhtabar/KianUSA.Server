@@ -32,13 +32,27 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                             User NewUser = new()
                             {
                                 Id = Id,
+                                UserName = Row["UserName"].ToString().Trim(),
                                 Email = Row["Email"].ToString().Trim(),
                                 Name = Row["Name"].ToString().Trim(),
                                 LastName = Row["Last Name"].ToString().Trim(),
                                 StoreName = Row["Store Name"].ToString().Trim(),
                                 Password = Password(Row["Password"]),
-                                Security = Row["Security"].ToString().Trim(),
+                                Rep = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Reps"].ToString().Trim()),
                                 Roles = await GetRolesByName(Id, Row["Roles"]?.ToString()),
+                                ShippingAddress1 = Row["Shipping Address 1"].ToString().Trim(),
+                                ShippingAddress2 = Row["Shipping Address 2"].ToString().Trim(),
+                                ShippingCountry = Row["Shipping Country"].ToString().Trim(),
+                                ShippingState = Row["Shipping State"].ToString().Trim(),
+                                ShippingCity = Row["Shipping City"].ToString().Trim(),
+                                ShippingZipCode = Row["Shipping ZipCode"].ToString().Trim(),
+                                StoreAddress1 = Row["Store Address 1"].ToString().Trim(),
+                                StoreAddress2 = Row["Store Address 2"].ToString().Trim(),
+                                StoreCountry = Row["Store Country"].ToString().Trim(),
+                                StoreState = Row["Store State"].ToString().Trim(),
+                                StoreCity = Row["Store City"].ToString().Trim(),
+                                StoreZipCode = Row["Store ZipCode"].ToString().Trim(),
+                                TaxId = Row["TaxId"].ToString().Trim()
                             };
                             Users.Add(NewUser);
                         }
@@ -65,7 +79,7 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                     await Db.SaveChangesAsync();
                     Trans.Commit();
                 }
-                catch
+                catch (Exception Ex)
                 {
                     Trans.Rollback();
                     throw new Exception("Cannot update database");
@@ -92,7 +106,8 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                     string[] RolNames = RoleNames.ToString().Split(",");
                     foreach (var RolName in RolNames)
                     {
-                        var RoleId = Roles.Find(x => x.Name.Equals(RolName, StringComparison.OrdinalIgnoreCase));
+                        var TrimRoleName = RolName.Trim();
+                        var RoleId = Roles.Find(x => x.Name.Equals(TrimRoleName, StringComparison.OrdinalIgnoreCase));
                         if (RoleId is not null)
                             UsersRoles.Add(new UserRole() { RoleId = RoleId.Id, UserId = UserId });
                     }

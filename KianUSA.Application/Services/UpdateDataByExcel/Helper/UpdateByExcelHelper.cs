@@ -66,6 +66,24 @@ namespace KianUSA.Application.Services.UpdateDataByExcel.Helper
             }
 
         }
+        public static int GetInt32WhenMorethanZero(object Value, int Default)
+        {
+            if (Value is null)
+                return Default;
+            string ValueString = Value.ToString();
+            if (string.IsNullOrWhiteSpace(ValueString))
+                return Default;
+            try
+            {
+                int Result = Convert.ToInt32(ValueString);
+                return Result > 0 ? Result : Default;
+            }
+            catch
+            {
+                return Default;
+            }
+
+        }
         public static bool GetBoolWithDefaultFalse(object Value)
         {
             if (Value is null)
@@ -155,6 +173,28 @@ namespace KianUSA.Application.Services.UpdateDataByExcel.Helper
                             Expression = Expression.Replace("[", "").Replace("]", "");
                             if (!string.IsNullOrWhiteSpace(Expression))
                                 Result.Add(Expression);
+                        }
+                    }
+                }
+            }
+            return Result.Count > 0 ? JsonSerializer.Serialize(Result.ToArray()) : null;
+        }
+        public static string ConvertStringWithbracketsToJsonArrayInt(string Value)
+        {
+            List<int> Result = new();
+            if (!string.IsNullOrWhiteSpace(Value))
+            {
+                var Matches = Regex.Matches(Value, @"(\[[^\[\]]*\])");
+                if (Matches?.Count > 0)
+                {
+                    foreach (var Match in Matches)
+                    {
+                        string Expression = Match?.ToString();
+                        if (!string.IsNullOrWhiteSpace(Expression))
+                        {
+                            Expression = Expression.Replace("[", "").Replace("]", "");
+                            if (Int32.TryParse(Expression, out int Number))
+                                Result.Add(Number);
                         }
                     }
                 }

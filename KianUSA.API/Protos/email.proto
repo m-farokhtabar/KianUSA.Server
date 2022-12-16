@@ -6,6 +6,7 @@ message SendCatalogRequestMessage{
 	string CustomerFullName = 1;
 	string CustomerEmail = 2;
 	string CategorySlug = 3;
+	string WhichPrice = 4;
 }
 message SendCatalogWithLandedPriceRequestMessage{
 	string CustomerFullName = 1;

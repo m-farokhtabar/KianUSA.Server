@@ -91,6 +91,8 @@ namespace KianUSA.API.Services
                 Message.ImagesUrl.AddRange(category.ImagesUrl);
             if (category.Tags?.Count > 0)
                 Message.Tags.AddRange(category.Tags);
+            if (category.Securities?.Count > 0)
+                Message.Securities.AddRange(category.Securities);
             if (category.Parameters?.Count > 0)
             {
                 foreach (var parameter in category.Parameters)

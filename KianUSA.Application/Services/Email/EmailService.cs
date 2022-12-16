@@ -15,10 +15,6 @@ namespace KianUSA.Application.Services.Email
             this.settings = settings;
             Provider = new();
         }
-        public async Task SendCatalogWithLandedPrice(string UserFirstName, string UserLastName, string CustomerFullName, string CustomerEmail, string CategorySlug)
-        {
-
-        }
         /// <summary>
         /// 
         /// </summary>
@@ -26,7 +22,7 @@ namespace KianUSA.Application.Services.Email
         /// <param name="CustomerEmail"></param>
         /// <param name="CategorySlug"></param>
         /// <returns></returns>
-        public async Task SendCatalog(string UserFirstName, string UserLastName, string CustomerFullName, string CustomerEmail, string CategorySlug)
+        public async Task SendCatalog(string UserFirstName, string UserLastName, string CustomerFullName, string CustomerEmail, string CategorySlug, string WhichPrice, string LandedPriceFactor = null)
         {
             if (string.IsNullOrWhiteSpace(CustomerFullName))
                 throw new Exception("Please input customer name.");
@@ -35,16 +31,28 @@ namespace KianUSA.Application.Services.Email
             if (!Tools.EmailIsValid(CustomerEmail))
                 throw new Exception("Customer email is not valid.");
             if (CategorySlug.Contains("/") || CategorySlug.Contains(@"\"))
-                    throw new Exception("Category name is not valid.");
+                throw new Exception("Category name is not valid.");
 
-            using var Db = new Context();            
+            string CatalogUrl = $"{CategorySlug}";
+            if (!string.IsNullOrWhiteSpace(LandedPriceFactor))
+            {
+                if (!string.IsNullOrWhiteSpace(WhichPrice))
+                    CatalogUrl = $"LandedPrices/0/{CategorySlug}_0_LandedPrice_{LandedPriceFactor}";
+                else
+                    CatalogUrl = $"LandedPrices/{WhichPrice}/{CategorySlug}_{WhichPrice}_LandedPrice_{LandedPriceFactor}";
+            }
+            else if (!string.IsNullOrWhiteSpace(WhichPrice))
+            {
+                CatalogUrl = $"{WhichPrice}/{CategorySlug}_{WhichPrice}";
+            }
+            using var Db = new Context();
             var Result = await Db.Settings.FindAsync(settings.CatalogEmailSetting).ConfigureAwait(false);
             if (Result is not null)
             {
                 try
                 {
                     EmailSetting Setting = System.Text.Json.JsonSerializer.Deserialize<EmailSetting>(Result.Value);
-                    string Body = Setting.BodyTemplate.Replace("{CustomerName}", CustomerFullName).Replace("{CatalogSlug}", $"{CategorySlug}.pdf?id={new Random(Guid.NewGuid().GetHashCode()).Next(1,999999999)}")
+                    string Body = Setting.BodyTemplate.Replace("{CustomerName}", CustomerFullName).Replace("{CatalogSlug}", $"{CatalogUrl}.pdf?id={new Random(Guid.NewGuid().GetHashCode()).Next(1,999999999)}")
                                                       .Replace("{User_FirstName}", UserFirstName).Replace("{User_LastName}", UserLastName).Replace("{CurrentDate}", DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLongTimeString());
                     
                     await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, CustomerEmail, Body);

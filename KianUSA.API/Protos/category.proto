@@ -16,6 +16,7 @@ message CategoryResponseMessage{
         int32 Order = 9;
         repeated string ImagesUrl = 10;
         repeated string Tags = 11;
+        repeated string Securities = 12;
 }
 
 message CategoriesResponseMessage{
