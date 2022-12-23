@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace KianUSA.Application.Services.UpdateDataByExcel
@@ -27,7 +26,7 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
             if (stream is null)
                 throw new Exception("Please upload correct excel file.");
             List<Product> Products = new();
-            List<Product> ProductsForComputingInventory = new();
+            //List<Product> ProductsForComputingInventory = new();
             try
             {
                 var Tables = UpdateByExcelHelper.ReadExcel(stream);
@@ -42,11 +41,10 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                         Guid Id = Guid.NewGuid();
                         Product NewProduct = CreateProduct(Products, Tables, Categories, Row, Id);
                         Products.Add(NewProduct);
-                        ProductsForComputingInventory.Add(CreateProduct(Products, Tables, Categories, Row, Id));
+                        //ProductsForComputingInventory.Add(CreateProduct(Products, Tables, Categories, Row, Id));
                     }
                     SetPieces(Products);
-                    ComputeOrders.GetInventoryForComplexItems(ProductsForComputingInventory);
-                    SetWHQTY(Products, ProductsForComputingInventory);
+                    InventoryManager.SetInventory(Products);                    
                 }
             }
             catch (Exception ex)
@@ -186,13 +184,13 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
         //        }
         //    }
         //}
-        private void SetWHQTY(List<Product> Products, List<Product> ProductsForComputingInventory)
-        {
-            foreach (var Product in Products)
-            {
-                Product.WHQTY = ComputeOrders.GetProductWHQTY(Product, ProductsForComputingInventory);
-            }
-        }
+        //private void SetWHQTY(List<Product> Products, List<Product> ProductsForComputingInventory)
+        //{
+        //    foreach (var Product in Products)
+        //    {
+        //        Product.WHQTY = ComputeOrders.GetProductWHQTY(Product, ProductsForComputingInventory);
+        //    }
+        //}
         //private string GetProductWHQTY(Product Product, List<Product> ProductsForComputingInventory)
         //{
         //    if (string.IsNullOrWhiteSpace(Product.WHQTY))

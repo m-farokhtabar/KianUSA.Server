@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace KianUSA.Application.Entity
 {
@@ -9,6 +10,11 @@ namespace KianUSA.Application.Entity
         public string Name { get; set; }
         public string Slug { get; set; }
         public double? Inventory { get; set; }
+        /// <summary>
+        /// موجودیت قبل از محاسبات مربوط به محصولات ترکیبی
+        /// </summary>
+        [NotMapped]
+        public double? OriginalInventory { get; set; }
         public string ShortDescription { get; set; }
         public string Description { get; set; }
         /// <summary>
