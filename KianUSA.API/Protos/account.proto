@@ -9,6 +9,20 @@ message LoginRequestMessage{
 message LoginResponseMessage{
 	string Token = 1;
 }
+message CustomersOfRepRequestMessage{
+	string RepUserName = 1;
+}
+message CustomerOfRepResponseMessage{
+	string Id = 1;
+	string Name = 2;
+	string Family = 3;
+	string UserName = 4;
+}
+message CustomersOfRepResponseMessage{
+	 repeated CustomerOfRepResponseMessage Customers = 1;
+}
+
 service AccountSrc{
 	rpc Login(LoginRequestMessage) returns (LoginResponseMessage);
+	rpc GetCustomersOfRep(CustomersOfRepRequestMessage) returns (CustomersOfRepResponseMessage);
 }

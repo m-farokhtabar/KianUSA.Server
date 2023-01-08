@@ -5,10 +5,12 @@ namespace KianUSA.Application.Services.Order
 {
     public class OrderDto
     {
-        public List<ProductOrder> Orders { get; set; }
+        public string CustomerUserName { get; set; }
         public PriceType PriceType { get; set; }
+        public double Cost { get; set; }
         public DeliveryType Delivery { get; set; }
         public TariffType Tariff { get; set; }
+        public List<ProductOrder> Orders { get; set; }
         public string Description { get; set; }
     }
 

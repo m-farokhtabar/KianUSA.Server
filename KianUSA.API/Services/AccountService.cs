@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,13 +32,14 @@ namespace KianUSA.API.Services
 
             List<Claim> claims = new();
             claims.Add(new(ClaimTypes.NameIdentifier, account.Id.ToString()));
-            claims.Add(new(ClaimTypes.Name, account.Email));
+            claims.Add(new(ClaimTypes.Name, account.UserName));
+            claims.Add(new(ClaimTypes.Email, account.Email));
             claims.Add(new(ClaimTypes.GivenName, account.Name));
-            claims.Add(new(ClaimTypes.Surname, account.LastName));            
+            claims.Add(new(ClaimTypes.Surname, account.LastName));
             foreach (var Page in account.Pages)
                 if (Page is not null)
                     claims.Add(new Claim("Page", Page));
-            
+
 
             foreach (var Role in account.Roles)
                 if (Role is not null)
@@ -52,6 +54,22 @@ namespace KianUSA.API.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             return new LoginResponseMessage() { Token = tokenHandler.WriteToken(token) };
+        }
+        public override async Task<CustomersOfRepResponseMessage> GetCustomersOfRep(CustomersOfRepRequestMessage request, ServerCallContext context)
+        {
+            var Customers = await service.GetCustomersOfRep(request.RepUserName).ConfigureAwait(false);
+            CustomersOfRepResponseMessage result = new();
+            if (Customers?.Count > 0)
+            {
+                result.Customers.AddRange(Customers.Select(x => new CustomerOfRepResponseMessage()
+                {
+                    Id = x.Id.ToString(),
+                    Family = x.Family,
+                    Name = x.Name,
+                    UserName = x.UserName
+                }).ToList());
+            }
+            return result;
         }
     }
 }

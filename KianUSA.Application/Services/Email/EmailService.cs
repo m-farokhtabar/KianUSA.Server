@@ -1,7 +1,12 @@
 ﻿using KianUSA.Application.Data;
 using KianUSA.Application.SeedWork;
+using KianUSA.Application.Services.Account;
 using KianUSA.Application.Services.Helper;
+using KianUSA.Application.Services.Order;
+using KianUSA.Application.Services.Product;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace KianUSA.Application.Services.Email
@@ -52,16 +57,16 @@ namespace KianUSA.Application.Services.Email
                 try
                 {
                     EmailSetting Setting = System.Text.Json.JsonSerializer.Deserialize<EmailSetting>(Result.Value);
-                    string Body = Setting.BodyTemplate.Replace("{CustomerName}", CustomerFullName).Replace("{CatalogSlug}", $"{CatalogUrl}.pdf?id={new Random(Guid.NewGuid().GetHashCode()).Next(1,999999999)}")
+                    string Body = Setting.BodyTemplate.Replace("{CustomerName}", CustomerFullName).Replace("{CatalogSlug}", $"{CatalogUrl}.pdf?id={new Random(Guid.NewGuid().GetHashCode()).Next(1, 999999999)}")
                                                       .Replace("{User_FirstName}", UserFirstName).Replace("{User_LastName}", UserLastName).Replace("{CurrentDate}", DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLongTimeString());
-                    
+
                     await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, CustomerEmail, Body);
 
                 }
                 catch
                 {
                     throw new Exception("Email setting is not valid.");
-                }                
+                }
             }
         }
         public async Task SendContactUs(string Name, string Family, string Phone, string Email, string Comment)
@@ -106,5 +111,109 @@ namespace KianUSA.Application.Services.Email
                 throw new Exception("Email setting is not valid.");
         }
 
+        public async Task SendOrder(OrderDto Order, List<Entity.Product> Products, string UserFullName, string RepEmail, CustomerDto Customer, DateTime OrderDate)
+        {
+            string AssetCatalogPath = settings.WwwRootPath + @"\Assets\Email\";
+            string OrderEmailTemplate = await File.ReadAllTextAsync($"{AssetCatalogPath}OrderEmailTemplate.html");
+            string OrderEmailTableBodyTemplate = await File.ReadAllTextAsync($"{AssetCatalogPath}OrderEmailTableBodyTemplate.html");
+
+            OrderEmailTemplate = OrderEmailTemplate.Replace("{CustomerName}", Customer.FullName)
+                              .Replace("{UserName}", UserFullName)
+                              .Replace("{ConfirmOrder}", "")
+                              .Replace("{ConfirmOrder}", OrderDate.ToString("MM/dd/yyyy"))
+                              .Replace("{Delivery}", Order.Delivery.ToString())
+                              .Replace("{ETDREC}", "");
+
+            string Rows = "";
+            double TotalPieces = 0;
+            decimal TotalPrices = 0;
+            double TotalCount = 0;
+            int i = 1;
+            foreach (var orderItem in Order.Orders)
+            {
+                var Prd = Products.Find(x => x.Id == orderItem.ProductId);
+                decimal Price = GetPrice(Prd, Order.PriceType, Order.Cost);
+                decimal TotalPrice = Price * (decimal)orderItem.Count;
+                Rows += OrderEmailTableBodyTemplate.Replace("{Item Number}", Prd.Name)
+                                                   .Replace("{Qty}", orderItem.Count.ToString())
+                                                   .Replace("{Price}", Tools.GetPriceFormat(Price))
+                                                   .Replace("{Total Price}", Tools.GetPriceFormat(TotalPrice))
+                                                   .Replace("{RowStyle}", GetRowStyle(i, Order.Orders.Count));
+                TotalPrices += TotalPrice;
+                TotalPieces += (Prd.PiecesCount * orderItem.Count);
+                TotalCount += orderItem.Count;
+                i++;
+            }
+            Rows += OrderEmailTableBodyTemplate
+                                   .Replace("{Item Number}", "")
+                                   .Replace("{Qty}", TotalCount.ToString())
+                                   .Replace("{Price}", "")
+                                   .Replace("{Total Price}", Tools.GetPriceFormat(TotalPrices))
+                                   .Replace("{RowStyle}", GetRowStyle(i, Order.Orders.Count));
+
+            OrderEmailTemplate.Replace("{OrderTableBody}", Rows)
+                              .Replace("{TotalPrices}", Tools.GetPriceFormat(TotalPrices))
+                              .Replace("{TotalPieces}", TotalPieces.ToString())
+                              .Replace("{Description}", Order.Description);
+
+            OrderEmailTemplate.Replace("{CurrentDate}", DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLongTimeString());
+            using var Db = new Context();
+            var Result = await Db.Settings.FindAsync(settings.OrderEmailSetting).ConfigureAwait(false);
+            if (Result is not null)
+            {
+                try
+                {
+                    EmailSetting Setting = System.Text.Json.JsonSerializer.Deserialize<EmailSetting>(Result.Value);
+                    string Body = OrderEmailTemplate;
+                    await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, Setting.UserName, Body, RepEmail + "," + Customer.Email, Setting.Bcc);
+
+                }
+                catch
+                {
+                    throw new Exception("Email setting is not valid.");
+                }
+            }
+            else
+                throw new Exception("Email setting is not valid.");
+        }
+        private decimal GetPrice(Entity.Product Model, PriceType Type, double Cost)
+        {
+            decimal Result = 0;
+            List<ProductPriceDto> Prices = !string.IsNullOrWhiteSpace(Model.Price) ? System.Text.Json.JsonSerializer.Deserialize<List<ProductPriceDto>>(Model.Price) : null;
+            switch (Type)
+            {
+                case PriceType.Fob:
+                    Result = Prices[0].Value.HasValue ? Prices[0].Value.Value : 0;
+                    break;
+                case PriceType.Sac:
+                    Result = Prices[2].Value.HasValue && Prices[2].Value.Value > 0 ? Prices[2].Value.Value : (Prices[1].Value ?? 0);
+                    break;
+                case PriceType.LandedPrice:
+                    if (Cost > 0 && Model.Cube.HasValue && Model.Cube > 0)
+                        return Prices[0].Value.Value + (decimal)(Model.Cube.Value * (Cost / 2350));
+                    break;
+            }
+            return Result;
+        }
+        private string GetRowStyle(int i, int OrdersCount)
+        {
+            var RowStyle = "style='border-bottom: solid black 1px;text-align: center;'";
+            if (i == 1)
+            {
+                RowStyle = "style='padding-top:10px;border-bottom: solid black 1px;text-align: center;'";
+            }
+            else
+            {
+                if (i == OrdersCount)
+               {
+                    RowStyle = "style='text-align: center;padding-bottom:10px;'";
+                }
+            }
+            if (i == 1 && i == OrdersCount)
+            {
+               RowStyle = "style='padding-top:10px;padding-bottom:10px;text-align: center;'";
+            }
+            return RowStyle;
+        }
     }
 }

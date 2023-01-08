@@ -80,7 +80,5 @@ import "google/protobuf/wrappers.proto";
         rpc GetByFirstCategory(google.protobuf.Empty) returns(ProductsResponseMessage);
         
         rpc GetById(ProductByIdRequestMessage) returns(ProductResponseMessage);
-        rpc GetBySlug(ProductBySlugRequestMessage) returns(ProductResponseMessage);
-        
-        
+        rpc GetBySlug(ProductBySlugRequestMessage) returns(ProductResponseMessage);               
     }

@@ -1,0 +1,12 @@
+﻿using System;
+
+namespace KianUSA.Application.Services.Account
+{
+    public class CustomersOfRepDto
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
+        public string Family { get; set; }
+        public string UserName { get; set; }
+    }
+}

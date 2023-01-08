@@ -44,7 +44,7 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                         //ProductsForComputingInventory.Add(CreateProduct(Products, Tables, Categories, Row, Id));
                     }
                     SetPieces(Products);
-                    InventoryManager.SetInventory(Products);                    
+                    InventoryManager.SetInventory(Products);
                 }
             }
             catch (Exception ex)

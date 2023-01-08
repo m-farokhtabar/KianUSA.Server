@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+option csharp_namespace = "KianUSA.API.Services";
+
+enum PriceType {
+    Fob = 0;
+    Sac = 1;
+    LandedPrice = 2;
+}
+enum DeliveryType{
+    CustomerForwarder = 0;
+    WillCall = 1;
+    KIANUSA = 2;
+}
+enum TariffType{
+    IORKIAN = 0;
+    IORCustomer = 1;
+}
+message ProductOrder{
+       string ProductId = 1;
+       double Count = 2;
+}
+message OrderRequestMessage{
+        string CustomerUserName = 1;
+        PriceType PriceType = 2;
+        double Cost = 3;
+        DeliveryType Delivery = 4;
+        TariffType Tariff = 5;
+        repeated ProductOrder Orders = 6;
+        string Description = 7;
+}
+message OrderResponseMessage{
+    string Message = 1;
+    bool IsError = 2;
+}
+service OrderSrv{
+    rpc SendOrder(OrderRequestMessage) returns(OrderResponseMessage);
+}

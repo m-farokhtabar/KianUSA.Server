@@ -16,7 +16,7 @@ namespace KianUSA.Application.Services.Email
         /// <param name="To"></param>
         /// <param name="body"></param>
         /// <returns></returns>
-        public async Task SendMailAsync(EmailSetting Setting, string subject, string To, string body)
+        public async Task SendMailAsync(EmailSetting Setting, string subject, string To, string body, string cc = "", string bcc = "")
         {
             MailMessage mailMessage = new()
             {
@@ -27,8 +27,14 @@ namespace KianUSA.Application.Services.Email
                 SubjectEncoding = Encoding.UTF8,
                 BodyEncoding = Encoding.UTF8                
                 
-            };
+            };            
             mailMessage.To.Add(To);
+            
+            if (!string.IsNullOrWhiteSpace(cc))
+                mailMessage.CC.Add(cc);
+
+            if (!string.IsNullOrWhiteSpace(bcc))
+                mailMessage.Bcc.Add(bcc);            
 
             using var client = new SmtpClient(Setting.Host);
             client.Credentials = new NetworkCredential(Setting.UserName, Setting.Password);
@@ -48,6 +54,7 @@ namespace KianUSA.Application.Services.Email
     public class EmailSetting
     {
         public string From { get; set; }
+        public string Bcc { get; set; }
         public string SubjectTemplate { get; set; }
         public string Host { get; set; }
         public int Port { get; set; }
