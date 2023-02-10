@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,23 +43,25 @@ namespace KianUSA.API
             .UseFilter(provider.GetRequiredService<AutomaticRetryAttribute>())
             );
             services.AddHangfireServer();
-
-
             services.AddAuthentication(x =>
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;                
             })
             .AddJwtBearer(x =>
             {
                 x.RequireHttpsMetadata = false;
-                x.SaveToken = true;
+                x.SaveToken = true;                                       
                 x.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(appSetting.SigningKey)),
+                    ValidateIssuerSigningKey = true,
+                    ValidateLifetime = true,
                     ValidateIssuer = false,
-                    ValidateAudience = false
+                    ValidateAudience = false,
+                    //مشخص می کند که اگر توکن منقض شده چقدر دیگر اعتبار داشته باشد که پیش فرض آن 5 دقیقه است
+                    //یعنی اگر توکن منقضی شده باشد باز هم بهش 5 دقیق وقت داده می شود
+                    ClockSkew = TimeSpan.Zero
                 };
             });
             services.AddAuthorization();

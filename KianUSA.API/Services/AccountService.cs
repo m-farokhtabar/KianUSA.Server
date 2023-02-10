@@ -48,7 +48,7 @@ namespace KianUSA.API.Services
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddDays(applicationSettings.UserAuthorizationTokenExpireTimeInDay),
+                Expires = DateTime.UtcNow.AddMinutes(applicationSettings.UserAuthorizationTokenExpireTimeInMin),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);

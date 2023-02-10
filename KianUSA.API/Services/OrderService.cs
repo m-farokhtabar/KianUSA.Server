@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace KianUSA.API.Services
@@ -25,7 +26,7 @@ namespace KianUSA.API.Services
         }
 
         public async override Task<OrderResponseMessage> SendOrder(OrderRequestMessage request, ServerCallContext context)
-        {
+        {            
             try
             {
                 OrderDto Order = new();
@@ -34,15 +35,17 @@ namespace KianUSA.API.Services
                 Order.Cost = request.Cost;
                 Order.Delivery = (Application.Services.Order.DeliveryType)(int)request.Delivery;
                 Order.Tariff = (Application.Services.Order.TariffType)(int)request.Tariff;
+                Order.PoNumber = request.PoNumber;
                 if (request.Orders?.Count > 0)
                 {
                     Order.Orders = new List<Application.Services.Order.ProductOrder>();
                     Order.Orders.AddRange(request.Orders.Select(x => new Application.Services.Order.ProductOrder()
-                    {
-                        ProductId = Guid.Parse(x.ProductId),
+                    {                        
+                        ProductSlug = x.ProductSlug,
                         Count = x.Count
                     }).ToList());
                 }
+                Order.ConfirmedBy = request.ConfirmedBy;
                 Order.Description = request.Description;
 
                 var Name = context.GetHttpContext().User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.GivenName).Value;
@@ -50,7 +53,7 @@ namespace KianUSA.API.Services
                 var Email = context.GetHttpContext().User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email).Value;
 
                 try
-                {
+                {                    
                     await service.SaveOrder(Order, Email, Name + " " + LastName);
                     return await Task.FromResult(new OrderResponseMessage() { Message = "Your orders is registered successfully.", IsError = false });
                 }

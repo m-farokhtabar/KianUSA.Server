@@ -100,7 +100,7 @@ namespace KianUSA.Application.Services.Category
                 Result.Add(MapTo(Model, ImagesUrl, null));
             });
             return Result.OrderBy(x => x.Order).ToList();
-        }
+        }        
         public async Task<List<CategoryDto>> GetWithChildren()
         {
             using var Db = new Context();

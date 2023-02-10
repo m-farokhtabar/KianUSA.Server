@@ -13,6 +13,10 @@ namespace KianUSA.Application.Services.Product
         public string ShortDescription { get; set; }
         public string Description { get; set; }
         /// <summary>
+        /// توضیحات برای صفحه تکی محصول
+        /// </summary>
+        public string ProductDescription { get; set; }
+        /// <summary>
         /// Json format
         /// </summary>
         public List<ProductPriceDto> Prices { get; set; }

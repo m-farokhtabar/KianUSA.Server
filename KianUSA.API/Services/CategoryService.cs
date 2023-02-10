@@ -28,15 +28,16 @@ namespace KianUSA.API.Services
                 result.Categories.Add(MapToCategory(category));
             return result;
         }
+        [AllowAnonymous]
         public override async Task<CategoriesResponseMessage> GetAllWithChildren(Empty request, ServerCallContext context)
         {
             List<CategoryDto> categories = await service.GetWithChildren().ConfigureAwait(false);
             CategoriesResponseMessage result = new();
             foreach (var category in categories)
-                result.Categories.Add(MapToCategory(category));
+                result.Categories.Add(MapToCategory(category));            
             return result;
         }
-
+        [AllowAnonymous]
         public override async Task<CategoriesShortDataResponseMessage> GetAllShortData(Empty request, ServerCallContext context)
         {
             List<CategoryShortDto> categories = await service.GetShortData().ConfigureAwait(false);

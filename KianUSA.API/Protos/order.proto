@@ -16,8 +16,8 @@ enum TariffType{
     IORKIAN = 0;
     IORCustomer = 1;
 }
-message ProductOrder{
-       string ProductId = 1;
+message ProductOrder{       
+       string ProductSlug = 1;
        double Count = 2;
 }
 message OrderRequestMessage{
@@ -27,7 +27,9 @@ message OrderRequestMessage{
         DeliveryType Delivery = 4;
         TariffType Tariff = 5;
         repeated ProductOrder Orders = 6;
-        string Description = 7;
+        string ConfirmedBy = 7;
+        string PoNumber = 8;
+        string Description = 9;
 }
 message OrderResponseMessage{
     string Message = 1;

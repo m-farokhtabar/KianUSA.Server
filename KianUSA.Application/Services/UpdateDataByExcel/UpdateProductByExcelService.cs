@@ -62,6 +62,7 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                 Name = Row["Name"].ToString().Trim(),
                 Slug = UpdateByExcelHelper.GenerateSlug(Row["Name"].ToString(), Row["Slug"], Products.ConvertAll(x => x.Slug)),
                 Description = Row["Description"].ToString().Trim(),
+                ProductDescription = Row["ProductDescription"].ToString().Trim(),
                 ShortDescription = Row["Short description"].ToString().Trim(),
                 BoxD = UpdateByExcelHelper.GetDouble(Row["Box D"]),
                 BoxW = UpdateByExcelHelper.GetDouble(Row["Box W"]),
@@ -76,7 +77,7 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                 Categories = GetCategoriesByName(Id, Row["Categories"]?.ToString(), Categories),
                 Price = CreateJsonPrices(Tables[0].Columns, Row),
                 Order = UpdateByExcelHelper.GetInt32WithDefaultZero(Row["Position"]),
-                Inventory = UpdateByExcelHelper.GetDouble(Row["Inventory"]),
+                Inventory = UpdateByExcelHelper.GetDoubleWithdefaultValue(Row["Inventory"], 0),
                 Groups = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Groups"].ToString().Trim()),
                 Factories = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Factories"].ToString().Trim()),
                 Tags = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Tags"].ToString().Trim()),
@@ -99,137 +100,6 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
             }
         }
 
-        //private static void GetInventoryForComplexItems(List<Product> Products)
-        //{
-        //    Products = Products.OrderByDescending(x => x.ComplexItemPriority).ToList();
-        //    int Priority = Products[0].ComplexItemPriority;
-        //    Dictionary<Guid, List<(double InventoryNeedsPerEach, int CountOfItem, Product ComplexProduct)>> PiecesResult = new();
-        //    foreach (var Product in Products)
-        //    {
-        //        //پس از محاسبه برای تمام اولویت های یکسان حالا باید بزرگترین ها را از محصولات کم کرد تا سقف 20
-        //        if (Product.ComplexItemPriority != Priority)
-        //        {
-        //            foreach (var PieceResult in PiecesResult)
-        //            {
-        //                var CurrentPiece = Products.Find(x => x.Id == PieceResult.Key);
-        //                (double InventoryPerEach, int Count) Max = (0, 0);
-        //                foreach (var (InventoryNeedsPerEach, CountOfItem, ComplexProduct) in PieceResult.Value)
-        //                {
-        //                    if (InventoryNeedsPerEach > 20)
-        //                    {
-        //                        Max.InventoryPerEach = 20;
-        //                        break;
-        //                    }
-        //                    if (InventoryNeedsPerEach > Max.InventoryPerEach)
-        //                    {
-        //                        Max.InventoryPerEach = InventoryNeedsPerEach;
-        //                        Max.Count = CountOfItem;
-        //                    }
-        //                }
-        //                CurrentPiece.Inventory -= (Max.InventoryPerEach * Max.Count);
-        //            }
-        //            PiecesResult.Clear();
-        //            Priority = Product.ComplexItemPriority;
-        //        }
-        //        if (!string.IsNullOrWhiteSpace(Product.ComplexItemPieces))
-        //        {
-        //            var PiecesNames = System.Text.Json.JsonSerializer.Deserialize<List<string>>(Product.ComplexItemPieces);
-        //            //this is complex
-        //            if (PiecesNames?.Count > 0)
-        //            {
-        //                //Find all Pieces
-        //                List<(Product Piece, int Count)> Pieces = new();
-        //                foreach (var PieceName in PiecesNames)
-        //                {
-        //                    var Piece = Products.Find(x => string.Equals(PieceName, x.Name, StringComparison.OrdinalIgnoreCase));
-        //                    if (Piece is not null)
-        //                    {
-        //                        var PieceIsExist = Pieces.Find(x => string.Equals(Piece.Name, x.Piece.Name, StringComparison.OrdinalIgnoreCase));
-        //                        if (PieceIsExist.Piece is null)
-        //                            Pieces.Add((Piece, 1));
-        //                        else
-        //                        {
-        //                            PieceIsExist.Count++;
-        //                        }
-        //                    }
-        //                }
-        //                //Find Min count of the Pieces
-        //                double Min = 9999999999;
-        //                if (Pieces.Count > 0)
-        //                {
-        //                    foreach (var (Piece, Count) in Pieces)
-        //                    {
-        //                        if (!Piece.Inventory.HasValue || Piece.Inventory == 0)
-        //                            break;
-        //                        else
-        //                        {
-        //                            double RealInventory = Math.Floor(Piece.Inventory.Value / Count);
-        //                            if (Min > RealInventory)
-        //                                Min = RealInventory;
-        //                        }
-        //                    }
-        //                }
-        //                //تعیین موجودیت محصول ترکیبی
-        //                Min = Min == 9999999999 ? 0 : Min;
-        //                Product.Inventory = Min;
-        //                foreach (var Piece in Pieces)
-        //                {
-        //                    PiecesResult.TryGetValue(Piece.Piece.Id, out List<(double InventoryNeedsPerEach, int CountOfItem, Product ComplexProduct)> Value);
-        //                    if (Value is not null)
-        //                        Value.Add((Min, Piece.Count, Product));
-        //                    else
-        //                        PiecesResult.Add(Piece.Piece.Id, new List<(double InventoryNeedsPerEach, int CountOfItem, Product ComplexProduct)>() { (Min, Piece.Count, Product) });
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
-        //private void SetWHQTY(List<Product> Products, List<Product> ProductsForComputingInventory)
-        //{
-        //    foreach (var Product in Products)
-        //    {
-        //        Product.WHQTY = ComputeOrders.GetProductWHQTY(Product, ProductsForComputingInventory);
-        //    }
-        //}
-        //private string GetProductWHQTY(Product Product, List<Product> ProductsForComputingInventory)
-        //{
-        //    if (string.IsNullOrWhiteSpace(Product.WHQTY))
-        //    {
-        //        var ProductForComputingInventory = ProductsForComputingInventory.Find(x => x.Id == Product.Id);
-        //        //محصول معمولی
-        //        if (Product.PiecesCount == 1)
-        //        {
-        //            //یعنی این محصول در هیچ محصول ترکیبی استفاده نشده است
-        //            if (Product.Inventory == ProductForComputingInventory.Inventory)
-        //            {
-        //                if (!Product.Inventory.HasValue || Product.Inventory <= 0)
-        //                    return "Out of Stock";
-        //                else if (Product.Inventory > 0 && Product.Inventory <= 5)
-        //                    return "Call Office";
-        //                else return "Available";
-        //            }
-        //            //یعنی این محصول در حداقل یک محصول ترکیبی استفاده شده است
-        //            else
-        //            {
-        //                if (ProductForComputingInventory.Inventory <= 0)
-        //                    return "Set Only";
-        //                else
-        //                    return "Available";
-        //            }
-        //        }
-        //        //محصول ترکیبی
-        //        else
-        //        {
-        //            if (!ProductForComputingInventory.Inventory.HasValue || ProductForComputingInventory.Inventory <= 0)
-        //                return "Out of Stock";
-        //            else if (ProductForComputingInventory.Inventory > 0 && ProductForComputingInventory.Inventory <= 5)
-        //                return "Call Office";
-        //            else return "Available";
-        //        }
-        //    }
-        //    else
-        //        return Product.WHQTY;
-        //}
         private static async Task UpdateDatabase(List<Product> Products)
         {
             try

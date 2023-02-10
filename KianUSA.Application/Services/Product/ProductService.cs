@@ -35,7 +35,7 @@ namespace KianUSA.Application.Services.Product
         public async Task<ProductDto> Get(string Slug)
         {
             using var Db = new Context();
-            var Model = await Db.Products.FirstOrDefaultAsync(x => x.Slug == Slug.ToLower()).ConfigureAwait(false);
+            var Model = await Db.Products.AsNoTracking().Include(x=>x.Categories).FirstOrDefaultAsync(x => x.Slug == Slug.ToLower()).ConfigureAwait(false);
             if (Model is null)
                 throw new ValidationException("Product does not exist.");
 
@@ -50,11 +50,6 @@ namespace KianUSA.Application.Services.Product
                 throw new ValidationException("There are not any products.");
 
             return Mapto(Models, ManageImages.GetProductsImagesUrl(appSettings.WwwRootPath));
-        }
-        public async Task<List<Product>> GetModels()
-        {
-            using var Db = new Context();
-            return await Db.Products.ToListAsync().ConfigureAwait(false);
         }
         /// <summary>
         /// Page Start With 0
@@ -197,6 +192,7 @@ namespace KianUSA.Application.Services.Product
                 Cube = Model.Cube,
                 D = Model.D,
                 Description = Model.Description,
+                ProductDescription = Model.ProductDescription,                
                 H = Model.H,
                 Id = Model.Id,
                 IsGroup = Model.IsGroup,
@@ -244,6 +240,7 @@ namespace KianUSA.Application.Services.Product
                 Cube = Model.Cube,
                 D = Model.D,
                 Description = Model.Description,
+                ProductDescription = Model.ProductDescription,
                 H = Model.H,
                 Id = Model.Id,
                 IsGroup = Model.IsGroup,

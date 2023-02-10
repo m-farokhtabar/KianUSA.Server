@@ -55,6 +55,7 @@ namespace KianUSA.Application.Services.Email
     {
         public string From { get; set; }
         public string Bcc { get; set; }
+        public string Cc { get; set; }
         public string SubjectTemplate { get; set; }
         public string Host { get; set; }
         public int Port { get; set; }

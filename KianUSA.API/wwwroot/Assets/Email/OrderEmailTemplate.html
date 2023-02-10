@@ -1,11 +1,12 @@
 ﻿<div style="width:700px;color:black;">
-    <h3 style="color:black;">To: {CustomerName}</h3>
-
-    <p style="color:black;">We have received your order placed by your rep (<strong>{UserName}</strong>) and has been confirmed by (<strong>{ConfirmOrder}</strong>) on <strong>{OrderDate}</strong>.</p>
-
+    <p style="color:black;">S.O No. {InvoiceNumber}</p>
+    {PoNumber}
+    <h3 style="color:black;">Dear, {CustomerName}</h3>    
+    <p>
+        Thank you for your order. We appreciate your loyalty.
+    </p>
     <p style="color:black;">
-        "We will verify the stock for these items and will arrange shipment via (<strong>{Delivery}</strong>) to you as soon as possible. "
-        The request ETD  is (<strong>{ETDREC}</strong>) and PO# is (<strong>{PONumber}</strong>).
+        "We will verify the stock for these items and will arrange shipment as soon as possible. "
     </p>
     <p style="color:black;">
         <strong>This email is considered as confirmation for shipping the items below </strong>
@@ -23,8 +24,10 @@
             {OrderTableBody}
         </tbody>
     </table>
-    <p>Total Price: {TotalPrices}</p>
+    <p>Total Price: {TotalPricesBelow}</p>
     <p>Total Pieces: {TotalPieces}</p>
+    <p>Total Cubes: {TotalCubes}</p>
+    <p>Total Weight: {TotalWeight}</p>
     <p>{Description}</p>
     <p style="color:black;">
         Please reach out to us if you have any questions or concerns. We appreciate your business!

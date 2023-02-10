@@ -11,12 +11,14 @@ namespace KianUSA.Application.Services.Order
         public DeliveryType Delivery { get; set; }
         public TariffType Tariff { get; set; }
         public List<ProductOrder> Orders { get; set; }
+        public string ConfirmedBy { get; set; }
+        public string PoNumber { get; set; }
         public string Description { get; set; }
     }
 
     public class ProductOrder
-    {
-        public Guid ProductId { get; set; }
+    {        
+        public string ProductSlug { get; set; }
         public double Count { get; set; }
     }
 

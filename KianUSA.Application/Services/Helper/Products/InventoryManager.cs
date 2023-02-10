@@ -10,9 +10,6 @@ namespace KianUSA.Application.Services.Helper.Products
 
         public static void SetInventory(List<Product> Products)
         {
-            foreach (var Product in Products)
-                Product.OriginalInventory = Product.Inventory;
-
             //لیست تمامی محصولات ترکیبی به ترتیب بالاترین اولویت
             var ComplexProducts = Products.Where(x => !string.IsNullOrWhiteSpace(x.ComplexItemPieces) && x.ComplexItemPriority > 0).OrderByDescending(x => x.ComplexItemPriority).ToList();
             foreach (var ComplexProduct in ComplexProducts)
@@ -35,11 +32,11 @@ namespace KianUSA.Application.Services.Helper.Products
             }
             SetWHQTY(Products);
         }
-        private static void SetWHQTY(List<Product> Products)
+        public static void SetWHQTY(List<Product> Products)
         {
             foreach (var Product in Products)
             {
-                Product.WHQTY = GetProductWHQTY(Product);
+                Product.WHQTY = GetProductWHQTY(Product, Products);
             }
         }
         public static List<PieceInfo> FindPieces(List<Product> Products, Product Product)
@@ -98,15 +95,19 @@ namespace KianUSA.Application.Services.Helper.Products
             //حداکثر تعداد محصول ترکیبی با توجه به موجودی فعلی
             return Min;
         }
-        private static string GetProductWHQTY(Product Product)
+        private static string GetProductWHQTY(Product Product, List<Product> Products)
         {
-            if (string.IsNullOrWhiteSpace(Product.WHQTY))
+            if (string.IsNullOrWhiteSpace(Product.WHQTY) || 
+                string.Equals(Product.WHQTY, "Out of Stock", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(Product.WHQTY, "Call Office", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(Product.WHQTY, "Available", StringComparison.InvariantCultureIgnoreCase) ||
+                string.Equals(Product.WHQTY, "Set Only", StringComparison.InvariantCultureIgnoreCase))
             {                
                 //محصول معمولی
                 if (Product.PiecesCount == 1 && Product.ComplexItemPriority == 0)
-                {
+                {                    
                     //یعنی این محصول در هیچ محصول ترکیبی استفاده نشده است
-                    if (Product.Inventory == Product.OriginalInventory)
+                    if (!Products.Any(x => !string.IsNullOrWhiteSpace(x.ComplexItemPieces) && x.ComplexItemPieces.Contains(Product.Name) && x.ComplexItemPriority > 0))
                     {
                         if (!Product.Inventory.HasValue || Product.Inventory <= 0)
                             return "Out of Stock";
@@ -117,8 +118,8 @@ namespace KianUSA.Application.Services.Helper.Products
                     //یعنی این محصول در حداقل یک محصول ترکیبی استفاده شده است
                     else
                     {
-                        if (Product.Inventory <= 0)
-                            return "Set Only";
+                        if (!Product.Inventory.HasValue || Product.Inventory <= 0)
+                            return "Out of Stock"; // "Set Only";
                         else
                             return "Available";
                     }
@@ -126,16 +127,32 @@ namespace KianUSA.Application.Services.Helper.Products
                 //محصول ترکیبی
                 else
                 {
-                    if (!Product.Inventory.HasValue || Product.Inventory <= 0)
-                        return "Out of Stock";
-                    else if (Product.Inventory > 0 && Product.Inventory <= 5)
-                        return "Call Office";
-                    else return "Available";
+                    //محصول ترکیبی با اولویت یعنی از طریق موجودی می توان متوجه شد که وضعیت به چه صورت است
+                    if (Product.ComplexItemPriority > 0)
+                    {
+                        if (!Product.Inventory.HasValue || Product.Inventory <= 0)
+                            return "Out of Stock";
+                        else if (Product.Inventory > 0 && Product.Inventory <= 5)
+                            return "Call Office";
+                        else return "Available";
+                    }
+                    //محصول ترکیبی با اولیت صفر یعنی برای آن موجودی رزرو نشده است پس باید خودمان محاسبه کنیم
+                    else
+                    {
+                        var Pieces = FindPieces(Products, Product);
+                        var ReservedStuckForComplex = ComputeMaxInventoryForComplexItem(Pieces);
+                        if (ReservedStuckForComplex <= 0)
+                            return "Out of Stock";
+                        else if (ReservedStuckForComplex > 0 && ReservedStuckForComplex <= 5)
+                            return "Call Office";
+                        else return "Available";
+                    }
                 }
             }
             else
                 return Product.WHQTY;
         }
+        
     }
 
     public class PieceInfo

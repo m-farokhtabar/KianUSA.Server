@@ -30,6 +30,7 @@ namespace KianUSA.API.Services
                 result.Products.Add(MapToProduct(product));
             return result;
         }
+        [AllowAnonymous]
         public override async Task<ProductsWithTotalItemsResponseMessage> GetByGroupsTagsWithPaging(ProductsByGroupsTagsWithPagingRequestMessage request, ServerCallContext context)
         {
             ProductsWithTotalItemDto products = await service.GetByGroupAndTagsWithPaging(request.Groups?.ToList(), request.Tags?.ToList(), request.PageNumber, request.PageCount, request.IsAcsOrder).ConfigureAwait(false);
@@ -48,7 +49,7 @@ namespace KianUSA.API.Services
                 result.Products.Add(MapToProduct(product));
             return result;
         }
-
+        
         public override async Task<ProductsResponseMessage> GetByCategoryId(ProductsByCategoryIdRequestMessage request, ServerCallContext context)
         {
             List<ProductDto> products = await service.GetByCategoryId(Guid.Parse(request.CategoryId)).ConfigureAwait(false);
@@ -57,6 +58,7 @@ namespace KianUSA.API.Services
                 result.Products.Add(MapToProduct(product));
             return result;
         }
+        [AllowAnonymous]
         public override async Task<ProductsResponseMessage> GetByCategoryIds(ProductsByCategoryIdsRequestMessage request, ServerCallContext context)
         {
             List<ProductDto> products = await service.GetByCategoryIds(request.CategoryIds.ToList().ConvertAll(x => Guid.Parse(x))).ConfigureAwait(false);
@@ -80,7 +82,7 @@ namespace KianUSA.API.Services
         {
             return MapToProduct(await service.Get(Guid.Parse(request.Id)).ConfigureAwait(false));
         }
-
+        [AllowAnonymous]
         public override async Task<ProductResponseMessage> GetBySlug(ProductBySlugRequestMessage request, ServerCallContext context)
         {
             return MapToProduct(await service.Get(request.Slug).ConfigureAwait(false));
@@ -92,6 +94,7 @@ namespace KianUSA.API.Services
             {
                 Id = product.Id.ToString(),
                 Description = Tools.NullStringToEmpty(product.Description),
+                ProductDescription = Tools.NullStringToEmpty(product.ProductDescription),
                 Name = Tools.NullStringToEmpty(product.Name),
                 Order = product.Order,
                 Slug = Tools.NullStringToEmpty(product.Slug),
@@ -108,7 +111,7 @@ namespace KianUSA.API.Services
                 Weight = product.Weight,
                 WHQTY = product.WHQTY,
                 PiecesCount = product.PiecesCount,
-                ComplexItemPriority = product.ComplexItemPriority
+                ComplexItemPriority = product.ComplexItemPriority                
             };
             if (product.CategoryIds?.Count > 0)
                 Message.CategoryIds.AddRange(product.CategoryIds.ConvertAll(x => x.ToString()));

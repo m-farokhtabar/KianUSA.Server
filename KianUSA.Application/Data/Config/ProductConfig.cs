@@ -15,6 +15,7 @@ namespace KianUSA.Application.Data.Config
             builder.Property(x => x.Inventory).IsRequired(false);
             builder.Property(x => x.ShortDescription).IsRequired(false).HasMaxLength(500);
             builder.Property(x => x.Description).IsRequired(false).HasMaxLength(2000);
+            builder.Property(x => x.ProductDescription).IsRequired(false);
 
             builder.Property(x => x.Price).IsRequired(false).HasMaxLength(1000);
             builder.Property(x => x.Cube).IsRequired(false);

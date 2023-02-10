@@ -10,11 +10,6 @@ namespace KianUSA.Application.Entity
         public string Name { get; set; }
         public string Slug { get; set; }
         public double? Inventory { get; set; }
-        /// <summary>
-        /// موجودیت قبل از محاسبات مربوط به محصولات ترکیبی
-        /// </summary>
-        [NotMapped]
-        public double? OriginalInventory { get; set; }
         public string ShortDescription { get; set; }
         public string Description { get; set; }
         /// <summary>
@@ -72,6 +67,10 @@ namespace KianUSA.Application.Entity
         /// اولویت اجاد محصولات پیچیده
         /// </summary>
         public int ComplexItemPriority { get; set; }
+        /// <summary>
+        /// توضیحات برای صفحه تکی محصول
+        /// </summary>
+        public string ProductDescription { get; set; }
     }
     public class ProductPrice
     {

@@ -111,28 +111,39 @@ namespace KianUSA.Application.Services.Email
                 throw new Exception("Email setting is not valid.");
         }
 
-        public async Task SendOrder(OrderDto Order, List<Entity.Product> Products, string UserFullName, string RepEmail, CustomerDto Customer, DateTime OrderDate)
+        public async Task SendOrder(OrderDto Order, List<Entity.Product> Products, string UserFullName, string RepEmail, CustomerDto Customer, DateTime OrderDate, string ConfirmedBy, string InvoiceNumber, string PoNumber)
         {
             string AssetCatalogPath = settings.WwwRootPath + @"\Assets\Email\";
             string OrderEmailTemplate = await File.ReadAllTextAsync($"{AssetCatalogPath}OrderEmailTemplate.html");
             string OrderEmailTableBodyTemplate = await File.ReadAllTextAsync($"{AssetCatalogPath}OrderEmailTableBodyTemplate.html");
+            //const string ReceivedParagraphWithRep = "<p style=\"color:black;\">We have received your order placed by your rep (<strong>{UserName}</strong>) and has been confirmed by (<strong>{ConfirmOrder}</strong>) on <strong>{OrderDate}</strong>.</p>";
+            //const string ReceivedParagraphWithOutRep = "<p style=\"color: black;\">We have received your order and has been confirmed by (<strong>{ConfirmOrder}</strong>) on <strong>{OrderDate}</strong>.</p>";
+            //string ReceivedParagraph = "";            
+            //if (RepEmail.ToLower().Trim() != Customer.Email.ToLower().Trim())
+            //    ReceivedParagraph = ReceivedParagraphWithRep.Replace("{UserName}", UserFullName).Replace("{ConfirmOrder}", ConfirmedBy).Replace("{OrderDate}", OrderDate.ToString("MM/dd/yyyy"));
+            //else
+            //    ReceivedParagraph = ReceivedParagraphWithOutRep.Replace("{ConfirmOrder}", ConfirmedBy).Replace("{OrderDate}", OrderDate.ToString("MM/dd/yyyy"));
 
-            OrderEmailTemplate = OrderEmailTemplate.Replace("{CustomerName}", Customer.FullName)
-                              .Replace("{UserName}", UserFullName)
-                              .Replace("{ConfirmOrder}", "")
-                              .Replace("{ConfirmOrder}", OrderDate.ToString("MM/dd/yyyy"))
-                              .Replace("{Delivery}", Order.Delivery.ToString())
-                              .Replace("{ETDREC}", "");
+            string PoNumberContent = "";
+            if (!string.IsNullOrWhiteSpace(PoNumber))
+                PoNumberContent = $"<p style=\"color: black;\">P.O. Number: {PoNumber}</p>";
+            OrderEmailTemplate = OrderEmailTemplate.Replace("{InvoiceNumber}", InvoiceNumber)
+                                                   .Replace("{CustomerName}", Customer.FullName)
+                                                   .Replace("{PoNumber}", PoNumberContent);                                                   
 
             string Rows = "";
             double TotalPieces = 0;
             decimal TotalPrices = 0;
             double TotalCount = 0;
+            double TotalCubes = 0;
+            double TotalWeight = 0;
+            double TotalContainers = 0;
+            double TotalContainersRound = 0;
             int i = 1;
             foreach (var orderItem in Order.Orders)
             {
-                var Prd = Products.Find(x => x.Id == orderItem.ProductId);
-                decimal Price = GetPrice(Prd, Order.PriceType, Order.Cost);
+                var Prd = Products.Find(x => x.Slug == orderItem.ProductSlug);
+                decimal Price = GetPrice(Prd, Order.PriceType, Order.Tariff, Order.Cost);
                 decimal TotalPrice = Price * (decimal)orderItem.Count;
                 Rows += OrderEmailTableBodyTemplate.Replace("{Item Number}", Prd.Name)
                                                    .Replace("{Qty}", orderItem.Count.ToString())
@@ -141,9 +152,14 @@ namespace KianUSA.Application.Services.Email
                                                    .Replace("{RowStyle}", GetRowStyle(i, Order.Orders.Count));
                 TotalPrices += TotalPrice;
                 TotalPieces += (Prd.PiecesCount * orderItem.Count);
+                TotalCubes += Prd.Cube.HasValue ? Prd.Cube.Value * orderItem.Count : 0;
+                TotalWeight += Prd.Weight.HasValue ? Prd.Weight.Value * orderItem.Count : 0;
                 TotalCount += orderItem.Count;
                 i++;
             }
+            TotalCubes = Math.Round(TotalCubes, 2);
+            TotalContainers = Math.Round(TotalCubes / 2400, 2);
+            TotalContainersRound = Math.Ceiling(TotalCubes / 2400);
             Rows += OrderEmailTableBodyTemplate
                                    .Replace("{Item Number}", "")
                                    .Replace("{Qty}", TotalCount.ToString())
@@ -151,12 +167,15 @@ namespace KianUSA.Application.Services.Email
                                    .Replace("{Total Price}", Tools.GetPriceFormat(TotalPrices))
                                    .Replace("{RowStyle}", GetRowStyle(i, Order.Orders.Count));
 
-            OrderEmailTemplate.Replace("{OrderTableBody}", Rows)
-                              .Replace("{TotalPrices}", Tools.GetPriceFormat(TotalPrices))
-                              .Replace("{TotalPieces}", TotalPieces.ToString())
-                              .Replace("{Description}", Order.Description);
+            OrderEmailTemplate = OrderEmailTemplate.Replace("{OrderTableBody}", Rows)
+                                                    .Replace("{TotalPricesBelow}", Tools.GetPriceFormat(TotalPrices))
+                                                    .Replace("{TotalPieces}", TotalPieces.ToString())
+                                                    .Replace("{TotalCubes}", TotalCubes.ToString())
+                                                    .Replace("{TotalWeight}", TotalWeight.ToString())
+                                                    //.Replace("{TotalContainers}", $"{TotalContainers}({TotalContainersRound})")
+                                                    .Replace("{Description}", Order.Description);
 
-            OrderEmailTemplate.Replace("{CurrentDate}", DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLongTimeString());
+            OrderEmailTemplate = OrderEmailTemplate.Replace("{CurrentDate}", DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLongTimeString());
             using var Db = new Context();
             var Result = await Db.Settings.FindAsync(settings.OrderEmailSetting).ConfigureAwait(false);
             if (Result is not null)
@@ -165,8 +184,11 @@ namespace KianUSA.Application.Services.Email
                 {
                     EmailSetting Setting = System.Text.Json.JsonSerializer.Deserialize<EmailSetting>(Result.Value);
                     string Body = OrderEmailTemplate;
-                    await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, Setting.UserName, Body, RepEmail + "," + Customer.Email, Setting.Bcc);
-
+                    string CC = !string.IsNullOrWhiteSpace(Setting.Cc) ? ("," + Setting.Cc) : "";
+                    if (RepEmail.Trim() != Customer.Email.Trim())
+                        await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, Setting.UserName, Body, RepEmail + "," + Customer.Email + CC, Setting.Bcc);
+                    else
+                        await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, Setting.UserName, Body, RepEmail + CC, Setting.Bcc);
                 }
                 catch
                 {
@@ -176,14 +198,17 @@ namespace KianUSA.Application.Services.Email
             else
                 throw new Exception("Email setting is not valid.");
         }
-        private decimal GetPrice(Entity.Product Model, PriceType Type, double Cost)
+        private decimal GetPrice(Entity.Product Model, PriceType Type, TariffType Tariff, double Cost)
         {
             decimal Result = 0;
             List<ProductPriceDto> Prices = !string.IsNullOrWhiteSpace(Model.Price) ? System.Text.Json.JsonSerializer.Deserialize<List<ProductPriceDto>>(Model.Price) : null;
             switch (Type)
             {
                 case PriceType.Fob:
-                    Result = Prices[0].Value.HasValue ? Prices[0].Value.Value : 0;
+                    if (Tariff == TariffType.IORCustomer && Type == PriceType.Fob)
+                        Result = Prices[0].Value.HasValue ? Prices[0].Value.Value - ((Prices[0].Value.Value * 20) / 100) : 0;
+                    else
+                        Result = Prices[0].Value.HasValue ? Prices[0].Value.Value : 0;
                     break;
                 case PriceType.Sac:
                     Result = Prices[2].Value.HasValue && Prices[2].Value.Value > 0 ? Prices[2].Value.Value : (Prices[1].Value ?? 0);
@@ -205,13 +230,13 @@ namespace KianUSA.Application.Services.Email
             else
             {
                 if (i == OrdersCount)
-               {
+                {
                     RowStyle = "style='text-align: center;padding-bottom:10px;'";
                 }
             }
             if (i == 1 && i == OrdersCount)
             {
-               RowStyle = "style='padding-top:10px;padding-bottom:10px;text-align: center;'";
+                RowStyle = "style='padding-top:10px;padding-bottom:10px;text-align: center;'";
             }
             return RowStyle;
         }

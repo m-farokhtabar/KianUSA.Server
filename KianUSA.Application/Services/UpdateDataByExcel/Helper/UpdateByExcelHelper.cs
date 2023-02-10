@@ -130,6 +130,23 @@ namespace KianUSA.Application.Services.UpdateDataByExcel.Helper
             }
 
         }
+        public static double GetDoubleWithdefaultValue(object Value, double Default)
+        {
+            if (Value is null)
+                return Default;
+            string ValueString = Value.ToString();
+            if (string.IsNullOrWhiteSpace(ValueString))
+                return Default;
+            try
+            {
+                return Math.Round(Convert.ToDouble(ValueString), 2, MidpointRounding.ToZero);
+            }
+            catch
+            {
+                return Default;
+            }
+
+        }
         public static decimal? GetDecimal(object Value)
         {
             if (Value is null)
