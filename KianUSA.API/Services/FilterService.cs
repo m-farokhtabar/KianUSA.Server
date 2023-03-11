@@ -15,7 +15,7 @@ namespace KianUSA.API.Services
         {
             service = new();
         }
-        [AllowAnonymous]
+        //[AllowAnonymous]
         public override async Task<FiltersResponseMessage> GetAll(Empty request, ServerCallContext context)
         {
             List<FilterDto> filters = await service.Get().ConfigureAwait(false);

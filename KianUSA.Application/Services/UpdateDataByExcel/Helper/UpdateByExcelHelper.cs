@@ -1,4 +1,5 @@
 ﻿using ExcelDataReader;
+using KianUSA.Application.Entity;
 using KianUSA.Application.Services.Helper;
 using System;
 using System.Collections.Generic;
@@ -218,6 +219,18 @@ namespace KianUSA.Application.Services.UpdateDataByExcel.Helper
             }
             return Result.Count > 0 ? JsonSerializer.Serialize(Result.ToArray()) : null;
         }
+        public static string CreateJsonKeyValue(DataColumnCollection Columns, DataRow Row, string StartColumnName)
+        {
+            List<KeyValue> DataList = new();
+            foreach (var Column in Columns)
+            {
+                string ColumnName = Column.ToString();
+                if (ColumnName.StartsWith(StartColumnName, StringComparison.OrdinalIgnoreCase))
+                    DataList.Add(new KeyValue() { Name = $"{ColumnName.Replace(StartColumnName, "", StringComparison.OrdinalIgnoreCase).Trim()}", Value = Row[ColumnName]?.ToString().Trim() });
+            }
+            return System.Text.Json.JsonSerializer.Serialize(DataList);
+        }
+
 
     }
 }

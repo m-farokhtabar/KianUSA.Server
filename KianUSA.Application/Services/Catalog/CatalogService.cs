@@ -21,8 +21,8 @@ namespace KianUSA.Application.Services.Catalog
         public CatalogService(IApplicationSettings appSettings)
         {
             this.appSettings = appSettings;
-            categoryService = new CategoryService(appSettings);
-            productService = new ProductService(appSettings);
+            categoryService = new CategoryService(appSettings, null);
+            productService = new ProductService(appSettings, null);
         }
 
         public async Task Create()
@@ -64,8 +64,8 @@ namespace KianUSA.Application.Services.Catalog
             string CurrentDateTime = DateTime.Now.ToString("MM/dd/yyyy hh:mm tt");
             string CatalogsPath = appSettings.WwwRootPath + @"\Catalogs\" + (Cost > 0 ? @"LandedPrices\" : "");
             string AssetCatalogPath = appSettings.WwwRootPath + @"\Assets\Catalog\";
-            Task<List<CategoryDto>> TaskCategories = categoryService.Get();
-            Task<List<ProductWithSlugCatDto>> TaskProducts = productService.GetWithCatSlug();
+            Task<List<CategoryDto>> TaskCategories = categoryService.Get(true);
+            Task<List<ProductWithSlugCatDto>> TaskProducts = productService.GetWithCatSlug(true);
             Task<string> TaskStyle = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogStyle.css");
             Task<string> TaskTemplateFirstPage = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogFirstPage.html");
             Task<string> TaskTemplateBody = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogBody.html");

@@ -40,6 +40,9 @@ namespace KianUSA.Application.Data.Config
             builder.Property(x => x.ComplexItemPriority).IsRequired();
             builder.Property(x => x.PiecesCount).IsRequired();
 
+            builder.Property(x => x.Features).IsRequired(false);
+            builder.Property(x => x.PricePermissions).IsRequired(false);
+
             builder.HasIndex(x => x.Slug).IsUnique();
             builder.HasIndex(x => x.Order);
         }

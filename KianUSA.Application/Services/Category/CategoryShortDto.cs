@@ -9,5 +9,6 @@ namespace KianUSA.Application.Services.Category
         public string Slug { get; set; }
         public int Order { get; set; }
         public string ShortDescription { get; set; }
+        public string Security { get; set; }
     }
 }

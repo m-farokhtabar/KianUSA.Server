@@ -15,7 +15,7 @@ namespace KianUSA.API.Services
         {
             service = new();
         }
-        [AllowAnonymous]
+        //[AllowAnonymous]
         public override async Task<GroupsResponseMessage> GetAll(Empty request, ServerCallContext context)
         {
             List<GroupDto> groups = await service.Get().ConfigureAwait(false);

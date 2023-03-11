@@ -36,10 +36,6 @@ namespace KianUSA.API.Services
             claims.Add(new(ClaimTypes.Email, account.Email));
             claims.Add(new(ClaimTypes.GivenName, account.Name));
             claims.Add(new(ClaimTypes.Surname, account.LastName));
-            foreach (var Page in account.Pages)
-                if (Page is not null)
-                    claims.Add(new Claim("Page", Page));
-
 
             foreach (var Role in account.Roles)
                 if (Role is not null)
@@ -52,8 +48,15 @@ namespace KianUSA.API.Services
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
+            
+            LoginResponseMessage result = new()
+            {
+                Token = tokenHandler.WriteToken(token)
+            };
+            result.Pages.AddRange(account.Pages.Where(x=> !string.IsNullOrWhiteSpace(x)).ToList());
+            result.Buttons.AddRange(account.Buttons.Where(x => !string.IsNullOrWhiteSpace(x)).ToList());
 
-            return new LoginResponseMessage() { Token = tokenHandler.WriteToken(token) };
+            return result;
         }
         public override async Task<CustomersOfRepResponseMessage> GetCustomersOfRep(CustomersOfRepRequestMessage request, ServerCallContext context)
         {

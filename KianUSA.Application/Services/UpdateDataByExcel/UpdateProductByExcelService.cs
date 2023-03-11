@@ -32,9 +32,9 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                 var Tables = UpdateByExcelHelper.ReadExcel(stream);
                 if (Tables?.Count > 0 && Tables[0].Rows?.Count > 0)
                 {
-                    CategoryService Service = new(appSettings);
+                    CategoryService Service = new(appSettings, null);
                     List<CategoryShortDto> Categories = null;
-                    try { Categories = (await Service.GetShortData().ConfigureAwait(false)); } catch { }
+                    try { Categories = (await Service.GetShortData(true).ConfigureAwait(false)); } catch { }
                     for (int i = 0; i < Tables[0].Rows.Count; i++)
                     {
                         var Row = Tables[0].Rows[i];
@@ -82,7 +82,9 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                 Factories = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Factories"].ToString().Trim()),
                 Tags = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Tags"].ToString().Trim()),
                 ComplexItemPieces = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Peace of Complex Item"].ToString().Trim()),
-                ComplexItemPriority = UpdateByExcelHelper.GetInt32WithDefaultZero(Row["Complex Item Priority"])
+                ComplexItemPriority = UpdateByExcelHelper.GetInt32WithDefaultZero(Row["Complex Item Priority"]),
+                Features = UpdateByExcelHelper.CreateJsonKeyValue(Tables[0].Columns, Row, "Feature"),
+                PricePermissions = UpdateByExcelHelper.CreateJsonKeyValue(Tables[0].Columns, Row, "Permission Price")
             };
         }
 
@@ -156,6 +158,5 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
             }
             return null;
         }
-
     }
 }

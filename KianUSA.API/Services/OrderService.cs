@@ -1,5 +1,6 @@
 ﻿using Grpc.Core;
 using Hangfire;
+using KianUSA.API.Helper;
 using KianUSA.Application.SeedWork;
 using KianUSA.Application.Services.Order;
 using Microsoft.AspNetCore.Authorization;
@@ -16,17 +17,20 @@ namespace KianUSA.API.Services
     [Authorize]
     public class OrderService : OrderSrv.OrderSrvBase
     {
-        private readonly Application.Services.Order.OrderService service;
+        private Application.Services.Order.OrderService service;
         private readonly ILogger<OrderService> logger;
-        private readonly IBackgroundJobClient BackgroundJobClient;
+        private readonly IBackgroundJobClient backgroundJobClient;
+        private readonly IApplicationSettings applicationSettings;
         public OrderService(IApplicationSettings applicationSettings, ILogger<OrderService> logger, IBackgroundJobClient backgroundJobClient)
-        {
-            service = new(applicationSettings, backgroundJobClient);
+        {            
             this.logger = logger;
+            this.applicationSettings = applicationSettings;
+            this.backgroundJobClient = backgroundJobClient;
         }
 
         public async override Task<OrderResponseMessage> SendOrder(OrderRequestMessage request, ServerCallContext context)
-        {            
+        {
+            NewService(context);
             try
             {
                 OrderDto Order = new();
@@ -67,6 +71,10 @@ namespace KianUSA.API.Services
             {
                 return await Task.FromResult(new OrderResponseMessage() { Message = "Unfortunately, there is a problem during order process. Please try again.", IsError = true });
             }
+        }
+        private void NewService(ServerCallContext context)
+        {
+            service = new Application.Services.Order.OrderService(applicationSettings, backgroundJobClient, Tools.GetRoles(context));
         }
     }
 }

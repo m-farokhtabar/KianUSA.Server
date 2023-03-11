@@ -71,6 +71,24 @@ namespace KianUSA.Application.Entity
         /// توضیحات برای صفحه تکی محصول
         /// </summary>
         public string ProductDescription { get; set; }
+
+
+
+        /// <summary>
+        /// مشخصات محصول
+        /// KeyValue
+        /// </summary>
+        public string Features { get; set; }
+        /// <summary>
+        /// دسترسی به قیمت ها
+        /// KeyValue
+        /// </summary>
+        public string PricePermissions { get; set; }
+    }
+    public class KeyValue
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
     }
     public class ProductPrice
     {

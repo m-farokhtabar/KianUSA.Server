@@ -16,9 +16,11 @@ namespace KianUSA.Application.Services.Category
     public class CategoryService
     {
         private readonly IApplicationSettings appSettings;
-        public CategoryService(IApplicationSettings appSettings)
+        private readonly List<string> userRoles;
+        public CategoryService(IApplicationSettings appSettings, List<string> userRoles)
         {
             this.appSettings = appSettings;
+            this.userRoles = userRoles;
         }
         public async Task<CategoryDto> GetFirstByOrder()
         {
@@ -26,6 +28,9 @@ namespace KianUSA.Application.Services.Category
             var Model = await Db.Categories.OrderBy(x => x.Order).FirstOrDefaultAsync().ConfigureAwait(false);
             if (Model is null)
                 throw new ValidationException("There are not any Categories.");
+            if (!HasCategoryPermission(Model.Security))
+                throw new ValidationException("Unfortunately you do not have permissions to see the category");
+
             var Children = await Db.CategoryCategories.Where(x => x.ParentCategoryId == Model.Id).ToListAsync();
             var ImagesUrl = ManageImages.GetCategoryImagesUrl(Model.Name, appSettings.WwwRootPath);
             return MapTo(Model, ImagesUrl, Children);
@@ -51,6 +56,11 @@ namespace KianUSA.Application.Services.Category
                 Models = new List<Category>();
             Model.Order = -1;
             Models.Add(Model);
+            
+            Models = RemoveCategoriesWithoutPermissionsFromLists(Models);
+            if (Models?.Count == 0)
+                throw new ValidationException("Unfortunately you do not have permissions to see these categories.");
+
 
 
             var AllImagesUrl = ManageImages.GetCategoriesImagesUrl(appSettings.WwwRootPath);
@@ -70,6 +80,9 @@ namespace KianUSA.Application.Services.Category
             var Model = await Db.Categories.Where(x => x.Slug == Slug.ToLower().Trim()).FirstOrDefaultAsync().ConfigureAwait(false);
             if (Model is null)
                 throw new ValidationException("Category does not exist.");
+            if (!HasCategoryPermission(Model.Security))
+                throw new ValidationException("Unfortunately you do not have permissions to see the category");
+
             var Children = await Db.CategoryCategories.Where(x => x.ParentCategorySlug == Slug.ToLower().Trim()).ToListAsync();
             var ImagesUrl = ManageImages.GetCategoryImagesUrl(Model.Name, appSettings.WwwRootPath);
             return MapTo(Model, ImagesUrl, Children);
@@ -80,16 +93,26 @@ namespace KianUSA.Application.Services.Category
             var Model = await Db.Categories.FindAsync(Id).ConfigureAwait(false);
             if (Model is null)
                 throw new ValidationException("Category does not exist.");
+            if (!HasCategoryPermission(Model.Security))
+                throw new ValidationException("Unfortunately you do not have permissions to see the category");
+
             var Children = await Db.CategoryCategories.Where(x => x.ParentCategoryId == Id).ToListAsync();
             var ImagesUrl = ManageImages.GetCategoryImagesUrl(Model.Name, appSettings.WwwRootPath);
             return MapTo(Model, ImagesUrl, Children);
         }
-        public async Task<List<CategoryDto>> Get()
+        public async Task<List<CategoryDto>> Get(bool IgnorePermissions = false)
         {
             using var Db = new Context();
             var Models = await Db.Categories.ToListAsync().ConfigureAwait(false);
             if (Models?.Count == 0)
                 throw new ValidationException("There are not any Category.");
+            if (!IgnorePermissions)
+            {
+                Models = RemoveCategoriesWithoutPermissionsFromLists(Models);
+                if (Models?.Count == 0)
+                    throw new ValidationException("Unfortunately you do not have permissions to see these categories.");
+            }
+
             var AllImagesUrl = ManageImages.GetCategoriesImagesUrl(appSettings.WwwRootPath);
             ConcurrentBag<CategoryDto> Result = new();
             Parallel.ForEach(Models, Model =>
@@ -100,13 +123,17 @@ namespace KianUSA.Application.Services.Category
                 Result.Add(MapTo(Model, ImagesUrl, null));
             });
             return Result.OrderBy(x => x.Order).ToList();
-        }        
+        }
         public async Task<List<CategoryDto>> GetWithChildren()
         {
             using var Db = new Context();
             var Models = await Db.Categories.Include(x => x.Parents).ToListAsync().ConfigureAwait(false);
             if (Models?.Count == 0)
                 throw new ValidationException("There are not any Category.");
+            Models = RemoveCategoriesWithoutPermissionsFromLists(Models);
+            if (Models?.Count == 0)
+                throw new ValidationException("Unfortunately you do not have permissions to see these categories.");
+
             var AllImagesUrl = ManageImages.GetCategoriesImagesUrl(appSettings.WwwRootPath);
             ConcurrentBag<CategoryDto> Result = new();
             Parallel.ForEach(Models, Model =>
@@ -125,7 +152,7 @@ namespace KianUSA.Application.Services.Category
             List<CategoryDto> Cats = await GetWithChildren();
             ConcurrentBag<CategoryDto> Result = new();
             if (Tags?.Count > 0)
-            {                                
+            {
                 Parallel.ForEach(Cats, Cat =>
                 {
                     if (Cat.Tags?.Count > 0 && Cat.Tags.Count >= Tags.Count && Cat.Tags.All(x => Tags.Contains(x)))
@@ -163,13 +190,26 @@ namespace KianUSA.Application.Services.Category
             return Result.OrderBy(x => x.Order).Distinct().ToList();
         }
 
-        public async Task<List<CategoryShortDto>> GetShortData()
+        public async Task<List<CategoryShortDto>> GetShortData(bool IgnorePermission = false)
         {
             using var Db = new Context();
-            var Result = await Db.Categories.Select(x => new CategoryShortDto { Id = x.Id, Name = x.Name, Slug = x.Slug, Order = x.Order, ShortDescription = x.ShortDescription }).ToListAsync().ConfigureAwait(false);
+            var Result = await Db.Categories.Select(x => new CategoryShortDto { Id = x.Id, Name = x.Name, Slug = x.Slug, Order = x.Order, ShortDescription = x.ShortDescription, Security = x.Security }).ToListAsync().ConfigureAwait(false);
             if (Result?.Count == 0)
-                throw new ValidationException("There are not any Category.");
-            return Result;
+                throw new ValidationException("There are not any Categories.");
+            if (!IgnorePermission)
+            {
+                List<CategoryShortDto> categoriesWithPermisson = new();
+                foreach (var category in Result)
+                {
+                    if (HasCategoryPermission(category.Security))
+                        categoriesWithPermisson.Add(category);
+                }
+                if (categoriesWithPermisson.Count == 0)
+                    throw new ValidationException("Unfortunately you do not have permissions to see these categories.");
+                return categoriesWithPermisson;
+            }
+            else
+                return Result;
         }
 
         private CategoryDto MapTo(Category Model, List<string> ImagesUrl, List<CategoryCategory> Children)
@@ -190,6 +230,47 @@ namespace KianUSA.Application.Services.Category
                 Tags = !string.IsNullOrWhiteSpace(Model.Tags) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Tags) : null,
                 Securities = !string.IsNullOrWhiteSpace(Model.Security) ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.Security) : null
             };
+        }
+        /// <summary>
+        /// بر اساس مجوز محصول نمایش یا مخفی می شود
+        /// </summary>
+        /// <param name="categories"></param>
+        /// <returns></returns>
+        private List<Category> RemoveCategoriesWithoutPermissionsFromLists(List<Category> categories)
+        {
+            if (userRoles.Any(x => string.Equals(x, "admin", StringComparison.OrdinalIgnoreCase)))
+                return categories;
+
+            List<Category> categoriesWithPermisson = null;
+            if (categories?.Count > 0)
+            {
+                categoriesWithPermisson = new List<Category>();
+                foreach (var category in categories)
+                {
+                    if (HasCategoryPermission(category.Security))
+                        categoriesWithPermisson.Add(category);
+                }
+            }
+            return categoriesWithPermisson;
+        }
+
+        private bool HasCategoryPermission(string security)
+        {
+            if (userRoles.Any(x => string.Equals(x, "admin", StringComparison.OrdinalIgnoreCase)))
+                return true;
+
+            if (string.IsNullOrWhiteSpace(security))
+                return true;
+            else
+            {
+                string SecuritytoLower = security.ToLower();
+                foreach (var userRole in userRoles)
+                {
+                    if (SecuritytoLower.IndexOf("\"" + userRole.ToLower() + "\"") > 0)
+                        return true;
+                }
+            }
+            return false;
         }
     }
 }

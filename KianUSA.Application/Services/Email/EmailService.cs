@@ -116,20 +116,12 @@ namespace KianUSA.Application.Services.Email
             string AssetCatalogPath = settings.WwwRootPath + @"\Assets\Email\";
             string OrderEmailTemplate = await File.ReadAllTextAsync($"{AssetCatalogPath}OrderEmailTemplate.html");
             string OrderEmailTableBodyTemplate = await File.ReadAllTextAsync($"{AssetCatalogPath}OrderEmailTableBodyTemplate.html");
-            //const string ReceivedParagraphWithRep = "<p style=\"color:black;\">We have received your order placed by your rep (<strong>{UserName}</strong>) and has been confirmed by (<strong>{ConfirmOrder}</strong>) on <strong>{OrderDate}</strong>.</p>";
-            //const string ReceivedParagraphWithOutRep = "<p style=\"color: black;\">We have received your order and has been confirmed by (<strong>{ConfirmOrder}</strong>) on <strong>{OrderDate}</strong>.</p>";
-            //string ReceivedParagraph = "";            
-            //if (RepEmail.ToLower().Trim() != Customer.Email.ToLower().Trim())
-            //    ReceivedParagraph = ReceivedParagraphWithRep.Replace("{UserName}", UserFullName).Replace("{ConfirmOrder}", ConfirmedBy).Replace("{OrderDate}", OrderDate.ToString("MM/dd/yyyy"));
-            //else
-            //    ReceivedParagraph = ReceivedParagraphWithOutRep.Replace("{ConfirmOrder}", ConfirmedBy).Replace("{OrderDate}", OrderDate.ToString("MM/dd/yyyy"));
-
             string PoNumberContent = "";
             if (!string.IsNullOrWhiteSpace(PoNumber))
-                PoNumberContent = $"<p style=\"color: black;\">P.O. Number: {PoNumber}</p>";
+                PoNumberContent = $"<br/><span style=\"color: black;\">P.O. Number: {PoNumber}</span>";
             OrderEmailTemplate = OrderEmailTemplate.Replace("{InvoiceNumber}", InvoiceNumber)
-                                                   .Replace("{CustomerName}", Customer.FullName)
-                                                   .Replace("{PoNumber}", PoNumberContent);                                                   
+                                                   .Replace("{PoNumber}", PoNumberContent)
+                                                   .Replace("{CustomerName}", Customer.FullName);
 
             string Rows = "";
             double TotalPieces = 0;
@@ -171,9 +163,8 @@ namespace KianUSA.Application.Services.Email
                                                     .Replace("{TotalPricesBelow}", Tools.GetPriceFormat(TotalPrices))
                                                     .Replace("{TotalPieces}", TotalPieces.ToString())
                                                     .Replace("{TotalCubes}", TotalCubes.ToString())
-                                                    .Replace("{TotalWeight}", TotalWeight.ToString())
-                                                    //.Replace("{TotalContainers}", $"{TotalContainers}({TotalContainersRound})")
-                                                    .Replace("{Description}", Order.Description);
+                                                    .Replace("{TotalWeight}", TotalWeight.ToString())                                                    
+                                                    .Replace("{Description}", !string.IsNullOrWhiteSpace(Order.Description) ? "Note: " + Order.Description : "");
 
             OrderEmailTemplate = OrderEmailTemplate.Replace("{CurrentDate}", DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLongTimeString());
             using var Db = new Context();

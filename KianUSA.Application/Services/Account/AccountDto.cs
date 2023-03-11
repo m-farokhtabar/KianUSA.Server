@@ -11,7 +11,7 @@ namespace KianUSA.Application.Services.Account
         public string Name { get; set; }
         public string LastName { get; set; }
         public List<string> Roles { get; set; }
-        public List<string> Pages { get; set; }
-        public List<string> Prices { get; set; }
+        public List<string> Pages { get; set; }        
+        public List<string> Buttons { get; set; }
     }    
 }

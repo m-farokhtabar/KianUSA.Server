@@ -41,7 +41,7 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                             Order = UpdateByExcelHelper.GetInt32WithDefaultZero(Row["Position"]),
                             PublishedCatalogType = (PublishedCatalogType)UpdateByExcelHelper.GetInt32WithDefaultZero(Row["PublishedCatalogType"]),
                             Tags = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Tags"].ToString().Trim()),
-                            Security = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Security"].ToString().Trim()),
+                            Security = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Security"].ToString().Trim())
                         };
                         Categories.Add(NewCategory);
                     }

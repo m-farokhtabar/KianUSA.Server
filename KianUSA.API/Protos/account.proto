@@ -8,6 +8,8 @@ message LoginRequestMessage{
 }
 message LoginResponseMessage{
 	string Token = 1;
+	repeated string Pages = 2;
+	repeated string Buttons = 3;
 }
 message CustomersOfRepRequestMessage{
 	string RepUserName = 1;

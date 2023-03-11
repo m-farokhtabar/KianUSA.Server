@@ -11,6 +11,8 @@ namespace KianUSA.Application.Data.Config
             builder.ToTable(nameof(Role));
             builder.HasKey(x => x.Id);
             builder.Property(x => x.Name).IsRequired(true).HasMaxLength(200);
+            builder.Property(x => x.Pages).IsRequired(false);
+            builder.Property(x => x.Buttons).IsRequired(false);
             builder.HasIndex(x => x.Name).IsUnique();
         }
     }

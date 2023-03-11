@@ -8,38 +8,43 @@ using System;
 using KianUSA.API.Helper;
 using Microsoft.AspNetCore.Authorization;
 using System.Linq;
+using System.Security.Claims;
 
 namespace KianUSA.API.Services
 {
     [Authorize]
     public class CategoryService : CategorySrv.CategorySrvBase
     {
-        private readonly Application.Services.Category.CategoryService service;
+        private Application.Services.Category.CategoryService service;
+        private readonly IApplicationSettings applicationSettings;
 
         public CategoryService(IApplicationSettings applicationSettings)
         {
-            service = new(applicationSettings);
+            this.applicationSettings = applicationSettings;
         }
         public override async Task<CategoriesResponseMessage> GetAll(Empty request, ServerCallContext context)
-        {            
+        {
+            NewService(context);
             List<CategoryDto> categories = await service.Get().ConfigureAwait(false);
             CategoriesResponseMessage result = new();
             foreach (var category in categories)
                 result.Categories.Add(MapToCategory(category));
             return result;
         }
-        [AllowAnonymous]
+        //[AllowAnonymous]
         public override async Task<CategoriesResponseMessage> GetAllWithChildren(Empty request, ServerCallContext context)
         {
+            NewService(context);
             List<CategoryDto> categories = await service.GetWithChildren().ConfigureAwait(false);
             CategoriesResponseMessage result = new();
             foreach (var category in categories)
                 result.Categories.Add(MapToCategory(category));            
             return result;
         }
-        [AllowAnonymous]
+        //[AllowAnonymous]
         public override async Task<CategoriesShortDataResponseMessage> GetAllShortData(Empty request, ServerCallContext context)
         {
+            NewService(context);
             List<CategoryShortDto> categories = await service.GetShortData().ConfigureAwait(false);
             CategoriesShortDataResponseMessage result = new();
             foreach (var category in categories)
@@ -48,16 +53,19 @@ namespace KianUSA.API.Services
         }
 
         public override async Task<CategoryResponseMessage> GetById(CategoryByIdRequestMessage request, ServerCallContext context)
-        {            
+        {
+            NewService(context);
             return MapToCategory(await service.Get(Guid.Parse(request.Id)).ConfigureAwait(false));
         }
 
         public override async Task<CategoryResponseMessage> GetBySlug(CategoryBySlugRequestMessage request, ServerCallContext context)
         {
+            NewService(context);
             return MapToCategory(await service.Get(request.Slug).ConfigureAwait(false));
         }
         public override async Task<CategoriesResponseMessage> GetBySlugWithChildren(CategoryBySlugRequestMessage request, ServerCallContext context)
-        {           
+        {
+            NewService(context);
             List<CategoryDto> categories = await service.GetBySlugWithChildren(request.Slug).ConfigureAwait(false);
             CategoriesResponseMessage result = new();
             foreach (var category in categories)
@@ -67,10 +75,12 @@ namespace KianUSA.API.Services
 
         public override async Task<CategoryResponseMessage> GetFirst(Empty request, ServerCallContext context)
         {
+            NewService(context);
             return MapToCategory(await service.GetFirstByOrder().ConfigureAwait(false));
         }        
         public override async Task<CategoriesResponseMessage> GetByFilter(CategoryByTagsRequestMessage request, ServerCallContext context)
         {
+            NewService(context);
             List<CategoryDto> categories = await service.GetByTags(request.Tags.ToList()).ConfigureAwait(false);
             CategoriesResponseMessage result = new();
             foreach (var category in categories)
@@ -141,5 +151,10 @@ namespace KianUSA.API.Services
                 ShortDescription = Tools.NullStringToEmpty(category.ShortDescription)
             };            
         }
+        private void NewService(ServerCallContext context)
+        {
+            service = new(applicationSettings, Tools.GetRoles(context));
+        }
+
     }
 }

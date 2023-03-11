@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace KianUSA.API.Services
@@ -15,24 +16,27 @@ namespace KianUSA.API.Services
     [Authorize]
     public class ProductService : ProductSrv.ProductSrvBase
     {
-        private readonly Application.Services.Product.ProductService service;
+        private Application.Services.Product.ProductService service;
         private readonly ILogger<ProductService> logger;
+        private readonly IApplicationSettings applicationSettings;
         public ProductService(IApplicationSettings applicationSettings, ILogger<ProductService> logger)
-        {
-            service = new(applicationSettings);
+        {            
             this.logger = logger;
+            this.applicationSettings = applicationSettings;
         }
         public override async Task<ProductsResponseMessage> GetAll(Empty request, ServerCallContext context)
         {
+            NewService(context);
             List<ProductDto> products = await service.Get().ConfigureAwait(false);
             ProductsResponseMessage result = new();
             foreach (var product in products)
                 result.Products.Add(MapToProduct(product));
             return result;
         }
-        [AllowAnonymous]
+        //[AllowAnonymous]
         public override async Task<ProductsWithTotalItemsResponseMessage> GetByGroupsTagsWithPaging(ProductsByGroupsTagsWithPagingRequestMessage request, ServerCallContext context)
         {
+            NewService(context);
             ProductsWithTotalItemDto products = await service.GetByGroupAndTagsWithPaging(request.Groups?.ToList(), request.Tags?.ToList(), request.PageNumber, request.PageCount, request.IsAcsOrder).ConfigureAwait(false);
             ProductsWithTotalItemsResponseMessage result = new();
             foreach (var product in products.Products)
@@ -43,6 +47,7 @@ namespace KianUSA.API.Services
 
         public override async Task<ProductsResponseMessage> GetByFirstCategory(Empty request, ServerCallContext context)
         {
+            NewService(context);
             List<ProductDto> products = await service.GetByFirstCategoryInOrder().ConfigureAwait(false);
             ProductsResponseMessage result = new();
             foreach (var product in products)
@@ -52,15 +57,17 @@ namespace KianUSA.API.Services
         
         public override async Task<ProductsResponseMessage> GetByCategoryId(ProductsByCategoryIdRequestMessage request, ServerCallContext context)
         {
+            NewService(context);
             List<ProductDto> products = await service.GetByCategoryId(Guid.Parse(request.CategoryId)).ConfigureAwait(false);
             ProductsResponseMessage result = new();
             foreach (var product in products)
                 result.Products.Add(MapToProduct(product));
             return result;
         }
-        [AllowAnonymous]
+        //[AllowAnonymous]
         public override async Task<ProductsResponseMessage> GetByCategoryIds(ProductsByCategoryIdsRequestMessage request, ServerCallContext context)
         {
+            NewService(context);
             List<ProductDto> products = await service.GetByCategoryIds(request.CategoryIds.ToList().ConvertAll(x => Guid.Parse(x))).ConfigureAwait(false);
             ProductsResponseMessage result = new();
             foreach (var product in products)
@@ -70,6 +77,7 @@ namespace KianUSA.API.Services
 
         public override async Task<ProductsResponseMessage> GetByCategorySlug(ProductsByCategorySlugRequestMessage request, ServerCallContext context)
         {
+            NewService(context);
             List<ProductDto> products = await service.GetByCategorySlug(request.CategorySlug).ConfigureAwait(false);
             logger.LogInformation("Count OF DTOProducts:" + products.Count);
             ProductsResponseMessage result = new();
@@ -80,16 +88,18 @@ namespace KianUSA.API.Services
         }
         public override async Task<ProductResponseMessage> GetById(ProductByIdRequestMessage request, ServerCallContext context)
         {
+            NewService(context);
             return MapToProduct(await service.Get(Guid.Parse(request.Id)).ConfigureAwait(false));
         }
-        [AllowAnonymous]
+        //[AllowAnonymous]
         public override async Task<ProductResponseMessage> GetBySlug(ProductBySlugRequestMessage request, ServerCallContext context)
         {
+            NewService(context);
             return MapToProduct(await service.Get(request.Slug).ConfigureAwait(false));
         }
 
         private ProductResponseMessage MapToProduct(ProductDto product)
-        {
+        {            
             var Message = new ProductResponseMessage()
             {
                 Id = product.Id.ToString(),
@@ -129,7 +139,30 @@ namespace KianUSA.API.Services
                 Message.Factories.AddRange(product.Factories);
             if (product.ComplexItemPieces?.Count > 0)
                 Message.ComplexItemPieces.AddRange(product.ComplexItemPieces);
+            
 
+            if (product.Features?.Count > 0)
+            {
+                foreach (var parameter in product.Features)
+                {
+                    Message.Features.Add(new KeyValue()
+                    {
+                        Name = Tools.NullStringToEmpty(parameter.Name),
+                        Value = Tools.NullStringToEmpty(parameter.Value)
+                    });
+                }
+            }
+            if (product.PricePermissions?.Count > 0)
+            {
+                foreach (var parameter in product.PricePermissions)
+                {
+                    Message.PricePermissions.Add(new KeyValue()
+                    {
+                        Name = Tools.NullStringToEmpty(parameter.Name),
+                        Value = Tools.NullStringToEmpty(parameter.Value)
+                    });
+                }
+            }
 
             if (product.Prices?.Count > 0)
             {
@@ -144,6 +177,9 @@ namespace KianUSA.API.Services
             }
             return Message;
         }
-
+        private void NewService(ServerCallContext context)
+        {
+            service = new(applicationSettings, Tools.GetRoles(context));
+        }
     }
 }

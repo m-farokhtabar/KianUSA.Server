@@ -17,10 +17,12 @@ namespace KianUSA.Application.Services.Order
     {
         private readonly IApplicationSettings appSettings;
         private readonly IBackgroundJobClient BackgroundJobClient;
-        public OrderService(IApplicationSettings appSettings, IBackgroundJobClient backgroundJobClient)
+        private readonly List<string> userRoles;
+        public OrderService(IApplicationSettings appSettings, IBackgroundJobClient backgroundJobClient, List<string> userRoles)
         {
             this.appSettings = appSettings;
             BackgroundJobClient = backgroundJobClient;
+            this.userRoles = userRoles;
         }
         public async Task SaveOrder(OrderDto Order, string UserEmail, string UserFullName)
         {
@@ -40,14 +42,16 @@ namespace KianUSA.Application.Services.Order
                         Count = x.Sum(y => y.Count)
                     }).ToList();
 
-                    var PrSrv = new ProductService(appSettings);
+                    //var PrSrv = new ProductService(appSettings);
                     List<Entity.Product> Products = null;
                     List<Entity.Product> SelectedProducts = null;
                     using var Db = new Context();
-                    Products = await Db.Products.ToListAsync().ConfigureAwait(false);
+                    Products = await Db.Products.Include(x=>x.Categories).ToListAsync().ConfigureAwait(false);
+                    Products = await ProductService.RemoveProductsWithoutPermissionsFromLists(Products, appSettings, userRoles);
+
                     SelectedProducts = Products.Where(x => Orders.Any(y => y.ProductSlug == x.Slug)).ToList();
-                    if (SelectedProducts?.Count > 0)
-                    {                        
+                    if (SelectedProducts?.Count > 0 && SelectedProducts.Count == Orders.Count)
+                    {
                         CheckAllProductsHavePrice(Order, SelectedProducts);
                         CheckFactoriesIfPriceIsFob(Order, SelectedProducts);
                         if (Order.PriceType != PriceType.Fob)
@@ -60,7 +64,7 @@ namespace KianUSA.Application.Services.Order
                             OrdersComplexItem(Products, SelectedProducts, Orders);
                             //به روز رسانی وضعیت موجودی محصولات
                             InventoryManager.SetWHQTY(Products);
-                            await Db.SaveChangesAsync();                             
+                            await Db.SaveChangesAsync();
                         }
                         string InvoiceNumber = await GenerateNewInvoiceNumber();
                         var Es = new EmailService(appSettings);
@@ -231,11 +235,15 @@ namespace KianUSA.Application.Services.Order
             foreach (var Product in SelectedProducts)
             {
                 List<ProductPriceDto> Prices = null;
+                List<KeyValueDto> PricePermissions = null;
+
                 if (!string.IsNullOrWhiteSpace(Product.Price))
                 {
                     try
                     {
                         Prices = System.Text.Json.JsonSerializer.Deserialize<List<ProductPriceDto>>(Product.Price);
+                        PricePermissions = System.Text.Json.JsonSerializer.Deserialize<List<KeyValueDto>>(Product.PricePermissions);
+                        ProductService.RemoveProductPricesWhichDoNotHavePermissions(Prices, PricePermissions, userRoles);
                     }
                     catch
                     {
@@ -269,7 +277,13 @@ namespace KianUSA.Application.Services.Order
                 throw new Exception($"Unfortunately, you cannot order these products({ProductsName}) due to lack of prices.");
             }
         }
-
+        //private void CheckForMinimumContainerThreshhold(OrderDto Order)
+        //{
+        //    if (Order.PriceType == PriceType.Fob)
+        //    {
+                
+        //    } 
+        //}
         private async Task<string> GenerateNewInvoiceNumber()
         {
             using var Db = new Context();

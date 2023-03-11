@@ -1,5 +1,6 @@
 ﻿using KianUSA.Application.Data;
 using KianUSA.Application.Services.Helper;
+using KianUSA.Application.Services.Product;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,7 @@ namespace KianUSA.Application.Services.Account
             var Roles = await Db.Roles.Where(x => RolesId.Contains(x.Id)).ToListAsync();
             if (Roles?.Count == 0)
                 throw new Exception("user is not valid");
-
+            
             return new AccountDto()
             {
                 Id = User.Id,
@@ -34,9 +35,29 @@ namespace KianUSA.Application.Services.Account
                 Name = User.Name,
                 LastName = User.LastName,
                 Roles = Roles.Select(x => x.Name).ToList(),
-                Pages = Roles.Select(x => x.Pages).ToList(),
-                Prices = Roles.Select(x => x.Prices).ToList()
+                Pages = Roles.Select(x => x.Pages)?.Distinct().ToList(),
+                Buttons = GetButtons(Roles.Select(x => x.Buttons)?.Distinct().ToList())?.Distinct().ToList()
             };
+        }
+
+        private List<string> GetButtons(List<string> Buttons)
+        {
+            List<string> PermissionButtons = null;
+            if (Buttons?.Count > 0)
+            {
+                PermissionButtons = new List<string>();
+                foreach (var button in Buttons)
+                {
+                    List<KeyValueDto> Value = !string.IsNullOrWhiteSpace(button) ? System.Text.Json.JsonSerializer.Deserialize<List<KeyValueDto>>(button) : null;
+                    if (Value?.Count > 0)
+                    {
+                        var PerButtons = Value.Where(x => !string.IsNullOrWhiteSpace(x.Value) && x.Value.Trim() == "1").Select(x => x.Name).ToList();
+                        if (PerButtons?.Count>0)
+                            PermissionButtons.AddRange(PerButtons);
+                    }
+                }
+            }
+            return PermissionButtons;
         }
 
         public async Task<CustomerDto> GetEmail(string UserName)

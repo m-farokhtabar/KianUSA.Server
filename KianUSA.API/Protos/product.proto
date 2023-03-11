@@ -36,6 +36,8 @@ import "google/protobuf/wrappers.proto";
         repeated string ComplexItemPieces =26;
         int32 ComplexItemPriority =27;
         string ProductDescription = 28;
+        repeated KeyValue Features = 29;
+        repeated KeyValue PricePermissions = 30;
     }
     message ProductPriceResponseMessage
     {
@@ -70,6 +72,10 @@ import "google/protobuf/wrappers.proto";
         int32 PageNumber = 3;
         int32 PageCount = 4;
         bool IsAcsOrder = 5;
+    }
+    message KeyValue{
+        string Name = 1;
+        string Value = 2;
     }
 
     service ProductSrv{

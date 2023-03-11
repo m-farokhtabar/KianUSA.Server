@@ -55,10 +55,18 @@ namespace KianUSA.Application.Services.Product
         /// اولویت اجاد محصولات پیچیده
         /// </summary>
         public int ComplexItemPriority { get; set; }
+
+        public List<KeyValueDto> Features { get; set; }
+        public List<KeyValueDto> PricePermissions { get; set; }
     }
     public class ProductPriceDto
     {
         public string Name { get; set; }
         public decimal? Value { get; set; }
+    }
+    public class KeyValueDto
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
     }
 }

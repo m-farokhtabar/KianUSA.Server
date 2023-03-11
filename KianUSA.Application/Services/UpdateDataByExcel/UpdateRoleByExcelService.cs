@@ -30,9 +30,9 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                             Role NewRole = new()
                             {
                                 Id = Guid.NewGuid(),
-                                Name = Row["Name"].ToString().Trim(),
-                                Prices = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayInt(Row["Prices"].ToString().Trim()),
-                                Pages = CreatesPages(Tables[0].Columns, Row)
+                                Name = Row["Name"].ToString().Trim(),                                
+                                Pages = CreatesPages(Tables[0].Columns, Row),
+                                Buttons = UpdateByExcelHelper.CreateJsonKeyValue(Tables[0].Columns, Row, "Button"),
                             };
                             Roles.Add(NewRole);                            
                         }
