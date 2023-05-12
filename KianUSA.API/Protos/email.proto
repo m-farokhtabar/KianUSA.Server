@@ -24,8 +24,20 @@ message SendContactUsRequestMessage{
 	string Email = 4;
 	string Comment = 5;
 }
+message SendAdvancedCatalogRequest{
+	repeated string CategoriesSlug = 1;
+	repeated int32 Prices = 2;
+	repeated string Factories = 3;
+	double LandedPrice = 4;
+	bool JustAvailable = 5;
+	string CustomerFullName = 6;
+	string CustomerEmail = 7;
+	bool IncludeExtraPictures = 8;
+}
+
 service EmailSrv{
 	rpc SendCatalog(SendCatalogRequestMessage) returns (SendResponseMessage);
+	rpc SendCatalogAdvanced(SendAdvancedCatalogRequest) returns (SendResponseMessage);
 	rpc SendCatalogWithLandedPrice(SendCatalogWithLandedPriceRequestMessage) returns (SendResponseMessage);
 	rpc SendContactUs(SendContactUsRequestMessage) returns (SendResponseMessage);
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Mail;
 using System.Text;
@@ -16,7 +17,7 @@ namespace KianUSA.Application.Services.Email
         /// <param name="To"></param>
         /// <param name="body"></param>
         /// <returns></returns>
-        public async Task SendMailAsync(EmailSetting Setting, string subject, string To, string body, string cc = "", string bcc = "")
+        public async Task SendMailAsync(EmailSetting Setting, string subject, string To, string body,List<string> AttachmentsPath = null,  string cc = "", string bcc = "")
         {
             MailMessage mailMessage = new()
             {
@@ -25,9 +26,14 @@ namespace KianUSA.Application.Services.Email
                 IsBodyHtml = true,
                 Body = body,
                 SubjectEncoding = Encoding.UTF8,
-                BodyEncoding = Encoding.UTF8                
-                
-            };            
+                BodyEncoding = Encoding.UTF8
+            };
+            if (AttachmentsPath?.Count > 0)
+            {
+                foreach (var AttachmentPath in AttachmentsPath)
+                    mailMessage.Attachments.Add(new Attachment(AttachmentPath));
+            }
+
             mailMessage.To.Add(To);
             
             if (!string.IsNullOrWhiteSpace(cc))
@@ -40,7 +46,7 @@ namespace KianUSA.Application.Services.Email
             client.Credentials = new NetworkCredential(Setting.UserName, Setting.Password);
             client.Port = Setting.Port;
             client.EnableSsl = true;
-            client.UseDefaultCredentials = false;
+            client.UseDefaultCredentials = false;            
             try
             {
                 await client.SendMailAsync(mailMessage);

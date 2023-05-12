@@ -10,6 +10,24 @@ message CatalogResponseMessage{
 	string UrlCurrent = 1;
 	string UrlAll = 2;
 }
+message DownloadCatalogRequest{
+	string CategorySlug = 1;
+	string Prices = 2;
+	double Factor = 3;
+}
+message DownloadAdvanceCatalogRequest{
+	repeated string CategoriesSlug = 1;
+	repeated int32 Prices = 2;
+	repeated string Factories = 3;
+	double LandedPrice = 4;
+	bool JustAvailable = 5;
+}
+message DownloadCatalogResponse{
+	string Url = 1;
+}
+
 service CatalogSrv{
 	rpc GetLandedPriceCatalogUrl(LandedPriceCatalogRequestMessage) returns (CatalogResponseMessage);
+	rpc DownloadCatalog(DownloadCatalogRequest) returns (DownloadCatalogResponse);
+	rpc DownloadAdvanceCatalog(DownloadAdvanceCatalogRequest) returns (DownloadCatalogResponse);
 }

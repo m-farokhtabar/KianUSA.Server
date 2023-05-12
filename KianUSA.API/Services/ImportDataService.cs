@@ -58,7 +58,7 @@ namespace KianUSA.API.Services
                 await GroupService.Update(GroupFile);
 
                 
-                backgroundJobClient.Enqueue(() => CatalogService.Create());
+                //backgroundJobClient.Enqueue(() => CatalogService.Create());
                 return await Task.FromResult(new ByFilesResponse() { IsSuccessful = true });
             }
             catch (Exception Ex)

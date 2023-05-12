@@ -145,7 +145,7 @@ namespace KianUSA.Application.Services.Product
                     throw new ValidationException("Unfortunately you do not have permissions to see products.");
             }
 
-            return MapToDtoWithSlugCat(Models, ManageImages.GetProductsImagesUrl(appSettings.WwwRootPath));
+            return MapToDtoWithSlugCat(Models, ManageImages.GetProductsImagesUrl(appSettings.WwwRootPath), IgnorePermissions);
         }
         public async Task<List<ProductDto>> GetByFirstCategoryInOrder()
         {
@@ -266,7 +266,7 @@ namespace KianUSA.Application.Services.Product
                 if (AllImagesUrl?.Count > 0)
                     ImagesUrl = AllImagesUrl.Where(x => x.StartsWith("/Images/Products/" + ManageImages.GetStartNameOfProductImageFileName(Model.Name))).ToList();
 
-                Result.Add(MapToDtoWithSlugCat(Model, ImagesUrl));
+                Result.Add(MapToDtoWithSlugCat(Model, ImagesUrl, IgnorePermission));
             });
             return Result.ToList();
         }
@@ -306,7 +306,7 @@ namespace KianUSA.Application.Services.Product
                 Features = !string.IsNullOrWhiteSpace(Model.Features) ? System.Text.Json.JsonSerializer.Deserialize<List<KeyValueDto>>(Model.Features) : null,
                 PricePermissions = !string.IsNullOrWhiteSpace(Model.PricePermissions) ? System.Text.Json.JsonSerializer.Deserialize<List<KeyValueDto>>(Model.PricePermissions) : null
             };
-            if (!IgnorePermission)
+            if (IgnorePermission == false)
                 RemoveProductPricesWhichDoNotHavePermissions(data);
             return data;
         }
@@ -322,7 +322,7 @@ namespace KianUSA.Application.Services.Product
                         bool found = false;
                         foreach (var userRole in userRoles)
                         {
-                            if (PricePermission.Value.ToLower().IndexOf(userRole.ToLower()) > 0)
+                            if (PricePermission.Value.ToLower().IndexOf(userRole.ToLower()) > 0 || userRole.ToLower() == "admin")
                             {
                                 found = true;
                                 break;
@@ -355,7 +355,7 @@ namespace KianUSA.Application.Services.Product
                         bool found = false;
                         foreach (var userRole in userRoles)
                         {
-                            if (PricePermission.Value.ToLower().IndexOf(userRole.ToLower()) > 0)
+                            if (PricePermission.Value.ToLower().IndexOf(userRole.ToLower()) > 0 || userRole.ToLower() == "admin")
                             {
                                 found = true;
                                 break;

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using KianUSA.Application.Services.Helper;
 using System;
+using System.Threading;
 
 namespace KianUSA.Application.Services.Catalog
 {
@@ -18,13 +19,88 @@ namespace KianUSA.Application.Services.Catalog
         private readonly IApplicationSettings appSettings;
         private readonly CategoryService categoryService;
         private readonly ProductService productService;
-        public CatalogService(IApplicationSettings appSettings)
+        private static long FileNamecounter = 0;
+        public CatalogService(IApplicationSettings appSettings, List<string> userRoles = null)
         {
             this.appSettings = appSettings;
-            categoryService = new CategoryService(appSettings, null);
-            productService = new ProductService(appSettings, null);
+            categoryService = new CategoryService(appSettings, userRoles);
+            productService = new ProductService(appSettings, userRoles);
         }
 
+
+        //public async Task<string> Generate(List<Guid> ProductsId, List<string> CategoriesSlug, List<string> Factories, List<int> Prices, double LandedPrice = 0)
+        //{
+        //    //لیست دسته ها و محصولات
+        //    //Task<List<CategoryDto>> TaskCategories = categoryService.Get(false);
+        //    //Task<List<ProductWithSlugCatDto>> TaskProducts = productService.GetWithCatSlug(false);
+        //    //await Task.WhenAll(TaskCategories, TaskProducts);
+        //    //List<CategoryDto> Categories = TaskCategories.Result;
+        //    //List<ProductWithSlugCatDto> Products = TaskProducts.Result;
+
+
+        //    List<CategoryDto> Categories = await categoryService.Get();
+        //    if (CategoriesSlug?.Count > 0)
+        //        Categories = Categories.Where(x => CategoriesSlug.Contains(x.Slug)).ToList();
+
+        //    List<ProductWithSlugCatDto> Products = await productService.GetWithCatSlug();
+
+        //    if (ProductsId?.Count > 0)
+        //        Products = Products.Where(x => ProductsId.Contains(x.Id)).ToList();
+
+        //    if (Products?.Count > 0)
+        //    {
+        //        if (Factories?.Count > 0)
+        //        {
+        //            foreach (var factory in Factories)
+        //                Products = Products.Where(x => x.Factories?.Count > 0 && x.Factories.Contains(factory)).ToList();
+        //        }
+        //        List<CategoryDto> activeCategories = new();
+        //        foreach (var cat in Categories)
+        //        {
+        //            if (Products.Any(x => x.CategoryIds.Contains(cat.Id)))
+        //                activeCategories.Add(cat);
+        //        }
+
+        //        return await CreateOnePdfBasedOnProducts(Prices.ToArray(), Products, activeCategories, LandedPrice);
+        //    }
+        //    else
+        //        throw new Exception("There are not any products.");
+        //}
+        public async Task<(string RelativePath, string ServerPath)> Generate(List<string> CategoriesSlug, List<string> Factories, List<int> Prices, bool JustAvailable = false, double LandedPrice = 0)
+        {
+            List<CategoryDto> Categories = await categoryService.Get();
+            if (CategoriesSlug?.Count > 0)
+                Categories = Categories.Where(x => CategoriesSlug.Contains(x.Slug)).ToList();
+
+            List<ProductWithSlugCatDto> Products = await productService.GetWithCatSlug();
+            if (Products?.Count > 0)
+            {
+                if (Factories?.Count > 0)
+                {
+                    foreach (var factory in Factories)
+                        Products = Products.Where(x => x.Factories?.Count > 0 && x.Factories.Contains(factory)).ToList();
+                }
+
+                List<ProductWithSlugCatDto> activeProducts = new();
+                foreach (var prd in Products)
+                {
+                    var isActive = true;
+                    if (Factories?.Count > 0)
+                        isActive = Factories.Any(x => prd.Factories.Contains(x));
+                    if (isActive && CategoriesSlug?.Count > 0)
+                        isActive = Categories.Any(x => prd.CategoryIds.Contains(x.Id));
+                    //0 => FOB
+                    if (isActive && JustAvailable && ((Prices is not null && !Prices.Any(x=> x==0)) || (Prices is null && LandedPrice > 0) ))
+                        isActive = string.Equals(prd.WHQTY, "Available",StringComparison.OrdinalIgnoreCase);
+                    if (isActive)
+                        activeProducts.Add(prd);
+                }
+
+                return await CreateOnePdfBasedOnProducts(Prices?.ToArray(), activeProducts, Categories, LandedPrice);
+            }
+            else
+                throw new Exception("There are not any products.");
+        }
         public async Task Create()
         {
             string CatalogsPath = appSettings.WwwRootPath + @"\Catalogs\";
@@ -55,12 +131,14 @@ namespace KianUSA.Application.Services.Catalog
             //else
             //    CatalogRoot.Create();
             if (!CatalogRoot.Exists)
-                CatalogRoot.Create();                
+                CatalogRoot.Create();
 
             await Create(new int[] { 0 }, Cost, CategorySlug);
         }
+
+
         private async Task Create(int[] PriceRange, double Cost = 0, string CategorySlug = "")
-        {            
+        {
             string CurrentDateTime = DateTime.Now.ToString("MM/dd/yyyy hh:mm tt");
             string CatalogsPath = appSettings.WwwRootPath + @"\Catalogs\" + (Cost > 0 ? @"LandedPrices\" : "");
             string AssetCatalogPath = appSettings.WwwRootPath + @"\Assets\Catalog\";
@@ -104,7 +182,7 @@ namespace KianUSA.Application.Services.Catalog
 
             await Task.Run(() =>
             {
-                ConcurrentBag<(int Order, string Body,string Name)> Catalogs = new();
+                ConcurrentBag<(int Order, string Body, string Name)> Catalogs = new();
                 string LandedPrice = Cost > 0 ? "_LandedPrice_" + Cost.ToString() : "";
                 string PriceType = "";
                 string PriceTypeDirectory = "";
@@ -124,7 +202,7 @@ namespace KianUSA.Application.Services.Catalog
                 {
                     if (Category.PublishedCatalogType != PublishedCatalogTypeDto.None)
                     {
-                        string Body = TemplateBody;                        
+                        string Body = TemplateBody;
                         Body = Body.Replace("{Banner}", CreateSingleBanner(Category, TemplateSingleBanner, AssetCatalogPath));
                         Body = Body.Replace("{DetailsTable}", CreateDetailsTable(Category, TemplateCatalogDetailsTable, TemplateCatalogDetailsTableRow));
                         Body = Body.Replace("{FeaturesTable}", CreateFeaturesTable(Category, TemplateCatalogFeaturesTable, TemplateCatalogFeaturesTableRow));
@@ -149,7 +227,7 @@ namespace KianUSA.Application.Services.Catalog
 
                 //Create MainCatalog
                 if (Catalogs?.Count > 0)
-                {                    
+                {
                     using FileStream AllInOnePdf = File.Open($"{CatalogsPath}{PriceTypeDirectory}Catalog{PriceType}{LandedPrice}.pdf", FileMode.Create, FileAccess.ReadWrite);
                     StringBuilder All = new();
                     var SortedCatalogs = Catalogs.OrderBy(x => x.Order).ToList();
@@ -161,6 +239,119 @@ namespace KianUSA.Application.Services.Catalog
                 }
             });
 
+        }
+
+        private async Task<(string RelativePath, string ServerPath)> CreateOnePdfBasedOnProducts(int[] PriceRange, List<ProductWithSlugCatDto> Products, List<CategoryDto> Categories, double Cost = 0, string CategorySlug = "")
+        {            
+            string RelativePath = null;
+            string PhysicalServerPath = null; 
+
+            string CurrentDateTime = DateTime.Now.ToString("MM/dd/yyyy hh:mm tt");
+            string CatalogsPath = appSettings.WwwRootPath + @"\Catalogs\" + (Cost > 0 ? @"LandedPrices\" : "");
+            string AssetCatalogPath = appSettings.WwwRootPath + @"\Assets\Catalog\";
+            Task<string> TaskStyle = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogStyle.css");
+            Task<string> TaskTemplateFirstPage = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogFirstPage.html");
+            Task<string> TaskTemplateBody = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogBody.html");
+            Task<string> TaskTemplateSingleBanner = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogSingleBanner.html");
+            Task<string> TaskCatalogDetailsTable = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogDetailsTable.html");
+            Task<string> TaskCatalogDetailsTableRow = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogDetailsTableRow.html");
+            Task<string> TaskCatalogMeasureTable = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogMeasureTable.html");
+            Task<string> TaskCatalogMeasureTableRow = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogMeasureTableRow.html");
+            Task<string> TaskCatalogMeasureTablePriceHeader = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogMeasureTablePriceHeader.html");
+            Task<string> TaskCatalogMeasureTablePriceCellValue = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogMeasureTablePriceCellValue.html");
+            Task<string> TaskCatalogFeaturesTable = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogFeaturesTable.html");
+            Task<string> TaskCatalogFeaturesTableRow = File.ReadAllTextAsync($"{AssetCatalogPath}CatalogFeaturesTableRow.html");
+
+            Task<string> TaskTemplateCatalog = File.ReadAllTextAsync($"{AssetCatalogPath}TemplateCatalog.html");
+
+            await Task.WhenAll(TaskStyle, TaskTemplateFirstPage, TaskTemplateBody,
+                               TaskTemplateSingleBanner, TaskCatalogDetailsTable, TaskCatalogDetailsTableRow,
+                               TaskCatalogMeasureTable, TaskCatalogMeasureTableRow, TaskCatalogFeaturesTable,
+                               TaskCatalogFeaturesTableRow, TaskCatalogMeasureTablePriceHeader).ConfigureAwait(false);
+
+            string Style = TaskStyle.Result;
+            string TemplateFirstPage = TaskTemplateFirstPage.Result.Replace("{Logo}", $"{AssetCatalogPath}Images\\kian_usa_logo.jpg").Replace("{TitleLogo}", $"{AssetCatalogPath}Images\\kian_usa_title_logo.jpg");
+            string TemplateSingleBanner = TaskTemplateSingleBanner.Result;
+            string TemplateBody = TaskTemplateBody.Result;
+            string TemplateCatalogDetailsTable = TaskCatalogDetailsTable.Result;
+            string TemplateCatalogDetailsTableRow = TaskCatalogDetailsTableRow.Result;
+            string TemplateCatalogMeasureTable = TaskCatalogMeasureTable.Result;
+            string TemplateCatalogMeasureTableRow = TaskCatalogMeasureTableRow.Result;
+            string TemplateCatalogFeaturesTable = TaskCatalogFeaturesTable.Result;
+            string TemplateCatalogFeaturesTableRow = TaskCatalogFeaturesTableRow.Result;
+            string TemplateCatalogMeasureTablePriceCellValue = TaskCatalogMeasureTablePriceCellValue.Result;
+            string TemplateCatalogMeasureTablePriceHeader = TaskCatalogMeasureTablePriceHeader.Result;
+            string TemplateCatalog = TaskTemplateCatalog.Result;
+
+            await Task.Run(() =>
+            {
+                ConcurrentBag<(int Order, string Body, string Name)> Catalogs = new();
+                string LandedPrice = Cost > 0 ? "_LandedPrice_" + Cost.ToString() : "";
+                string PriceType = "";
+                string PriceTypeDirectory = "";
+                if (PriceRange?.Length > 0)
+                {
+                    PriceType = string.Join("_", PriceRange);
+                    if (PriceType != "")
+                    {
+                        if (!Directory.Exists($"{CatalogsPath}{PriceType}"))
+                            Directory.CreateDirectory($"{CatalogsPath}{PriceType}");
+                        PriceTypeDirectory = PriceType + "\\";
+                        PriceType = "_" + PriceType;
+                    }
+                }
+
+                Parallel.ForEach(Categories, Category =>
+                {                    
+                    if (Category.PublishedCatalogType != PublishedCatalogTypeDto.None && 
+                    (Categories.Count<=1 || Products.Any(x=>x.CategoryIds.Contains(Category.Id))))
+                    {
+                        string Body = TemplateBody;
+                        Body = Body.Replace("{Banner}", CreateSingleBanner(Category, TemplateSingleBanner, AssetCatalogPath));
+                        Body = Body.Replace("{DetailsTable}", CreateDetailsTable(Category, TemplateCatalogDetailsTable, TemplateCatalogDetailsTableRow));
+                        Body = Body.Replace("{FeaturesTable}", CreateFeaturesTable(Category, TemplateCatalogFeaturesTable, TemplateCatalogFeaturesTableRow));
+                        Body = Body.Replace("{MeasureTable}", CreateMeasureTable(Category, Products, TemplateCatalogMeasureTable, TemplateCatalogMeasureTableRow, TemplateCatalogMeasureTablePriceHeader, TemplateCatalogMeasureTablePriceCellValue, PriceRange, Cost));
+                        if (Category.PublishedCatalogType == PublishedCatalogTypeDto.Main || Category.PublishedCatalogType == PublishedCatalogTypeDto.SingleAndMain)
+                        {
+                            Catalogs.Add((Category.Order, Body, Category.Name));
+                        }
+                        Body = Body.Replace("{PageNumber}", "1");
+                        Body = Body.Replace("{DateTime}", CurrentDateTime);
+                        Body = Body.Replace("{CategoryName}", Category.Name);
+                        if (Category.PublishedCatalogType != PublishedCatalogTypeDto.Main)
+                        {
+                            if (Cost == 0 || (Cost > 0 && string.Equals(Category.Slug, CategorySlug, StringComparison.InvariantCultureIgnoreCase)))
+                            {
+                                //using FileStream pdfDest = File.Open($"{CatalogsPath}{PriceTypeDirectory}{Category.Slug}{PriceType}{LandedPrice}.pdf", FileMode.Create);
+                                //HtmlConverter.ConvertToPdf(TemplateCatalog.Replace("{Style}", Style).Replace("{Body}", TemplateFirstPage + Body), pdfDest);
+                            }
+                        }
+                    }
+                });
+
+                //Create MainCatalog                
+                if (Catalogs?.Count > 0)
+                {
+                    Interlocked.Increment(ref FileNamecounter);
+                    RelativePath = $"{PriceTypeDirectory}Catalog{PriceType}{LandedPrice}_{GetFullDateTimeString()}_{FileNamecounter}.pdf";
+                    PhysicalServerPath = $"{CatalogsPath}{RelativePath}";
+                    using FileStream AllInOnePdf = File.Open(PhysicalServerPath, FileMode.Create, FileAccess.ReadWrite);
+                    StringBuilder All = new();
+                    var SortedCatalogs = Catalogs.OrderBy(x => x.Order).ToList();
+                    for (int i = 0; i < SortedCatalogs.Count; i++)
+                    {
+                        All.Append(SortedCatalogs[i].Body.Replace("{PageNumber}", (i + 1).ToString()).Replace("{DateTime}", CurrentDateTime).Replace("{CategoryName}", SortedCatalogs[i].Name));
+                    }
+                    HtmlConverter.ConvertToPdf(TemplateCatalog.Replace("{Style}", Style).Replace("{Body}", TemplateFirstPage + All.ToString()), AllInOnePdf);
+                }
+            });
+
+            return ((Cost > 0 ? @"LandedPrices/" : "") + RelativePath, PhysicalServerPath);
+        }
+        private string GetFullDateTimeString()
+        {
+            var Current = DateTime.Now;
+            return Current.Year.ToString("0000") + Current.Month.ToString("00") + Current.Day.ToString("00") + Current.Hour.ToString("00") + Current.Minute.ToString("00") + Current.Second.ToString("00") + Current.Millisecond.ToString("00");
         }
         private static string CreateMeasureTable(CategoryDto Category, List<ProductWithSlugCatDto> Products, string TemplateCatalogMeasureTable, string TemplateCatalogMeasureTableRow, string TemplateCatalogMeasureTablePriceHeader, string TemplateCatalogMeasureTablePriceCellValue, int[] PriceRange, double Cost)
         {
@@ -202,16 +393,25 @@ namespace KianUSA.Application.Services.Catalog
         {
             try
             {
-                if (!CurrentProduct.Prices[Idx].Value.HasValue)
-                    return null;
-                if (Cost > 0 && CurrentProduct.Cube.HasValue && CurrentProduct.Cube > 0)
-                    return CurrentProduct.Prices[Idx].Value.Value + (decimal)(CurrentProduct.Cube.Value * (Cost/2350));
+                //Landed Price
+                if (Idx == 999)
+                {
+                    if (Cost > 0 && CurrentProduct.Cube.HasValue && CurrentProduct.Cube > 0 && CurrentProduct.Prices[0].Value.HasValue)
+                        return CurrentProduct.Prices[0].Value.Value + (decimal)(CurrentProduct.Cube.Value * (Cost / 2350));
+                    else
+                        return null;
+                }
                 else
-                    return CurrentProduct.Prices[Idx].Value.Value;
+                {
+                    if (!CurrentProduct.Prices[Idx].Value.HasValue)
+                        return null;
+                    else
+                        return CurrentProduct.Prices[Idx].Value.Value;
+                }
             }
-            catch
+            catch(Exception ex)
             {
-                throw new Exception("Price PRoblem");
+                throw new Exception("Price Problem");                                
             }
         }
         private static (List<(int Idx, string Color)>, string) GetAcceptablePriceIndexesAndHeaders(List<ProductWithSlugCatDto> CurrentProducts, string TemplateHeader, int[] PriceRange, double Cost)
@@ -222,31 +422,42 @@ namespace KianUSA.Application.Services.Catalog
             if (FirstProduct.Prices?.Count > 0)
             {
                 AcceptablePriceIndexes = new List<(int, string)>();
+                //Other Price 0,1,2
                 for (int i = 0; i < FirstProduct.Prices.Count; i++)
                 {
-                    if (PriceRange is null || PriceRange.Length == 0 || (PriceRange?.Length > 0 && PriceRange.Contains(i)))
+                    // Null PriceRange Show all prices => if (PriceRange is null || PriceRange.Length == 0 || (PriceRange?.Length > 0 && PriceRange.Contains(i)))
+                    if (PriceRange?.Length > 0 && PriceRange.Contains(i))
                     {
                         foreach (var Product in CurrentProducts)
                         {
                             if (Product.Prices[i].Value != null)
                             {
-                                AcceptablePriceIndexes.Add((i, GetPriceColor(i, Cost)));
-                                if (Cost>0)
-                                    //Headers += TemplateHeader.Replace("{PriceHeaderName}", "Landed Price").Replace("{PriceHeaderColor}", GetPriceColor(i, Cost));
-                                    Headers += TemplateHeader.Replace("{PriceHeaderName}", "Landed Price").Replace("{PriceHeaderColor}", "");
-                                else
-                                    //Headers += TemplateHeader.Replace("{PriceHeaderName}", Product.Prices[i].Name).Replace("{PriceHeaderColor}", GetPriceColor(i, Cost));
-                                    Headers += TemplateHeader.Replace("{PriceHeaderName}", Product.Prices[i].Name).Replace("{PriceHeaderColor}", "");
+                                AcceptablePriceIndexes.Add((i, GetPriceColor(i)));
+                                Headers += TemplateHeader.Replace("{PriceHeaderName}", Product.Prices[i].Name).Replace("{PriceHeaderColor}", "");
                                 break;
                             }
                         }
                     }
                 }
+                //Landed Price
+                if (Cost > 0)
+                {
+                    foreach (var Product in CurrentProducts)
+                    {
+                        if (Product.Prices[0].Value != null)
+                        {
+                            AcceptablePriceIndexes.Add((999, GetPriceColor(0, Cost)));
+                            Headers += TemplateHeader.Replace("{PriceHeaderName}", "Landed Price").Replace("{PriceHeaderColor}", "");
+                            break;
+                        }
+                    }
+                }
+
             }
             return (AcceptablePriceIndexes, Headers);
         }
 
-        private static string GetPriceColor(int Index, double Factor)
+        private static string GetPriceColor(int Index, double Factor = 0)
         {
             switch (Index)
             {

@@ -49,7 +49,7 @@ namespace KianUSA.API.Services
             CategoriesShortDataResponseMessage result = new();
             foreach (var category in categories)
                 result.Categories.Add(MapToCategoryShortData(category));
-            return result;            
+            return result;
         }
 
         public override async Task<CategoryResponseMessage> GetById(CategoryByIdRequestMessage request, ServerCallContext context)

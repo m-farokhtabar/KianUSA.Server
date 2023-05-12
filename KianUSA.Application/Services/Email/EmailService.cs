@@ -18,16 +18,18 @@ namespace KianUSA.Application.Services.Email
         public EmailService(IApplicationSettings settings)
         {
             this.settings = settings;
-            Provider = new();
+            Provider = new();            
         }
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="UserFirstName"></param>
+        /// <param name="UserLastName"></param>
         /// <param name="CustomerFullName"></param>
         /// <param name="CustomerEmail"></param>
-        /// <param name="CategorySlug"></param>
+        /// <param name="CatalogUrl"></param>
         /// <returns></returns>
-        public async Task SendCatalog(string UserFirstName, string UserLastName, string CustomerFullName, string CustomerEmail, string CategorySlug, string WhichPrice, string LandedPriceFactor = null)
+        public async Task SendCatalog(string UserFirstName, string UserLastName, string CustomerFullName, string CustomerEmail, string CatalogUrl)// string CategorySlug, string WhichPrice, string LandedPriceFactor = null)
         {
             if (string.IsNullOrWhiteSpace(CustomerFullName))
                 throw new Exception("Please input customer name.");
@@ -35,21 +37,22 @@ namespace KianUSA.Application.Services.Email
                 throw new Exception("Please input customer email.");
             if (!Tools.EmailIsValid(CustomerEmail))
                 throw new Exception("Customer email is not valid.");
-            if (CategorySlug.Contains("/") || CategorySlug.Contains(@"\"))
-                throw new Exception("Category name is not valid.");
+            //if (CategorySlug.Contains("/") || CategorySlug.Contains(@"\"))
+            //    throw new Exception("Category name is not valid.");
 
-            string CatalogUrl = $"{CategorySlug}";
-            if (!string.IsNullOrWhiteSpace(LandedPriceFactor))
-            {
-                if (!string.IsNullOrWhiteSpace(WhichPrice))
-                    CatalogUrl = $"LandedPrices/0/{CategorySlug}_0_LandedPrice_{LandedPriceFactor}";
-                else
-                    CatalogUrl = $"LandedPrices/{WhichPrice}/{CategorySlug}_{WhichPrice}_LandedPrice_{LandedPriceFactor}";
-            }
-            else if (!string.IsNullOrWhiteSpace(WhichPrice))
-            {
-                CatalogUrl = $"{WhichPrice}/{CategorySlug}_{WhichPrice}";
-            }
+            //string CatalogUrl = $"{CategorySlug}";
+            //if (!string.IsNullOrWhiteSpace(LandedPriceFactor))
+            //{
+            //    if (!string.IsNullOrWhiteSpace(WhichPrice))
+            //        CatalogUrl = $"LandedPrices/0/{CategorySlug}_0_LandedPrice_{LandedPriceFactor}";
+            //    else
+            //        CatalogUrl = $"LandedPrices/{WhichPrice}/{CategorySlug}_{WhichPrice}_LandedPrice_{LandedPriceFactor}";
+            //}
+            //else if (!string.IsNullOrWhiteSpace(WhichPrice))
+            //{
+            //    CatalogUrl = $"{WhichPrice}/{CategorySlug}_{WhichPrice}";
+            //}
+
             using var Db = new Context();
             var Result = await Db.Settings.FindAsync(settings.CatalogEmailSetting).ConfigureAwait(false);
             if (Result is not null)
@@ -60,7 +63,11 @@ namespace KianUSA.Application.Services.Email
                     string Body = Setting.BodyTemplate.Replace("{CustomerName}", CustomerFullName).Replace("{CatalogSlug}", $"{CatalogUrl}.pdf?id={new Random(Guid.NewGuid().GetHashCode()).Next(1, 999999999)}")
                                                       .Replace("{User_FirstName}", UserFirstName).Replace("{User_LastName}", UserLastName).Replace("{CurrentDate}", DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLongTimeString());
 
-                    await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, CustomerEmail, Body);
+                    
+                    if (string.IsNullOrEmpty(CatalogUrl))
+                        await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, CustomerEmail, Body);
+                    else
+                        await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, CustomerEmail, Body, new List<string>() { CatalogUrl });
 
                 }
                 catch
@@ -163,7 +170,7 @@ namespace KianUSA.Application.Services.Email
                                                     .Replace("{TotalPricesBelow}", Tools.GetPriceFormat(TotalPrices))
                                                     .Replace("{TotalPieces}", TotalPieces.ToString())
                                                     .Replace("{TotalCubes}", TotalCubes.ToString())
-                                                    .Replace("{TotalWeight}", TotalWeight.ToString())                                                    
+                                                    .Replace("{TotalWeight}", TotalWeight.ToString())
                                                     .Replace("{Description}", !string.IsNullOrWhiteSpace(Order.Description) ? "Note: " + Order.Description : "");
 
             OrderEmailTemplate = OrderEmailTemplate.Replace("{CurrentDate}", DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLongTimeString());
@@ -177,9 +184,9 @@ namespace KianUSA.Application.Services.Email
                     string Body = OrderEmailTemplate;
                     string CC = !string.IsNullOrWhiteSpace(Setting.Cc) ? ("," + Setting.Cc) : "";
                     if (RepEmail.Trim() != Customer.Email.Trim())
-                        await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, Setting.UserName, Body, RepEmail + "," + Customer.Email + CC, Setting.Bcc);
+                        await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, Setting.UserName, Body, null, RepEmail + "," + Customer.Email + CC, Setting.Bcc);
                     else
-                        await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, Setting.UserName, Body, RepEmail + CC, Setting.Bcc);
+                        await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, Setting.UserName, Body, null, RepEmail + CC, Setting.Bcc);
                 }
                 catch
                 {
