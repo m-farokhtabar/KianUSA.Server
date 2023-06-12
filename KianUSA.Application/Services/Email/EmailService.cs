@@ -29,10 +29,10 @@ namespace KianUSA.Application.Services.Email
         /// <param name="CustomerEmail"></param>
         /// <param name="CatalogUrl"></param>
         /// <returns></returns>
-        public async Task SendCatalog(string UserFirstName, string UserLastName, string CustomerFullName, string CustomerEmail, string CatalogUrl)// string CategorySlug, string WhichPrice, string LandedPriceFactor = null)
+        public async Task SendCatalog(string UserFirstName, string UserLastName, string CustomerFullName, string CustomBodyText, string CustomerEmail, string CatalogUrl)// string CategorySlug, string WhichPrice, string LandedPriceFactor = null)
         {
             if (string.IsNullOrWhiteSpace(CustomerFullName))
-                throw new Exception("Please input customer name.");
+                throw new Exception("Please input customer name or custom text.");
             if (string.IsNullOrWhiteSpace(CustomerEmail))
                 throw new Exception("Please input customer email.");
             if (!Tools.EmailIsValid(CustomerEmail))
@@ -60,10 +60,21 @@ namespace KianUSA.Application.Services.Email
                 try
                 {
                     EmailSetting Setting = System.Text.Json.JsonSerializer.Deserialize<EmailSetting>(Result.Value);
-                    string Body = Setting.BodyTemplate.Replace("{CustomerName}", CustomerFullName).Replace("{CatalogSlug}", $"{CatalogUrl}.pdf?id={new Random(Guid.NewGuid().GetHashCode()).Next(1, 999999999)}")
-                                                      .Replace("{User_FirstName}", UserFirstName).Replace("{User_LastName}", UserLastName).Replace("{CurrentDate}", DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLongTimeString());
+                    if (!string.IsNullOrWhiteSpace(CustomBodyText))
+                    {
+                        CustomBodyText = CustomBodyText.Replace(System.Environment.NewLine, "<br/>");
+                        CustomBodyText = CustomBodyText.Replace("\n", "<br/>");
+                    }
 
-                    
+                    string Body = Setting.BodyTemplate.Replace("{CustomerName}", CustomerFullName).Replace("{CatalogSlug}", $"{CatalogUrl}.pdf?id={new Random(Guid.NewGuid().GetHashCode()).Next(1, 999999999)}")
+                                                      .Replace("{User_FirstName}", UserFirstName)
+                                                      .Replace("{User_LastName}", UserLastName)
+                                                      .Replace("{Additional_Content}", CustomBodyText)
+                                                      .Replace("{CurrentDate}", DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLongTimeString());
+
+
+
+
                     if (string.IsNullOrEmpty(CatalogUrl))
                         await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, CustomerEmail, Body);
                     else

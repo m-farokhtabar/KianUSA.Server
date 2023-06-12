@@ -31,8 +31,9 @@ message SendAdvancedCatalogRequest{
 	double LandedPrice = 4;
 	bool JustAvailable = 5;
 	string CustomerFullName = 6;
-	string CustomerEmail = 7;
-	bool IncludeExtraPictures = 8;
+	string CustomBodyText = 7;
+	string CustomerEmail = 8;
+	bool IncludeExtraPictures = 9;
 }
 
 service EmailSrv{

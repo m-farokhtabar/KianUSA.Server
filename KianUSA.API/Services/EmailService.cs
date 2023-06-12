@@ -81,7 +81,7 @@ namespace KianUSA.API.Services
                 var catalogService = new Application.Services.Catalog.CatalogService(applicationSettings, roles);
 
                 var Path = (await catalogService.Generate(request.CategoriesSlug?.ToList(), request.Factories?.ToList(), request.Prices?.ToList(), request.JustAvailable, request.LandedPrice)).ServerPath;
-                backgroundJobClient.Enqueue(() => service.SendCatalog(Name, LastName, request.CustomerFullName, request.CustomerEmail, Path));
+                backgroundJobClient.Enqueue(() => service.SendCatalog(Name, LastName, request.CustomerFullName, request.CustomBodyText, request.CustomerEmail, Path));
                 return await Task.FromResult(new SendResponseMessage() { PutInEmailQueue = true });
             }
             catch
@@ -128,7 +128,7 @@ namespace KianUSA.API.Services
 
             //await service.SendCatalog(Name, LastName, request.CustomerFullName, request.CustomerEmail, request.CategorySlug, "0", request.Factor.ToString());
 
-            await service.SendCatalog(Name, LastName, CustomerFullName, CustomerEmail, Path);
+            await service.SendCatalog(Name, LastName, CustomerFullName, null, CustomerEmail, Path);
         }
     }
 }

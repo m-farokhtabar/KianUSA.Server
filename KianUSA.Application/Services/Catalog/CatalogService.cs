@@ -447,7 +447,7 @@ namespace KianUSA.Application.Services.Catalog
                         if (Product.Prices[0].Value != null)
                         {
                             AcceptablePriceIndexes.Add((999, GetPriceColor(0, Cost)));
-                            Headers += TemplateHeader.Replace("{PriceHeaderName}", "Landed Price").Replace("{PriceHeaderColor}", "");
+                            Headers += TemplateHeader.Replace("{PriceHeaderName}", "Mix Container <br/> Landed").Replace("{PriceHeaderColor}", "");
                             break;
                         }
                     }

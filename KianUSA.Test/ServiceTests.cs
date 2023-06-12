@@ -14,12 +14,12 @@ namespace KianUSA.Test
     public class ServiceTests
     {
         private readonly ApplicationSettings ApplicationSettings;
-        private const string Path = @"F:\Project\SEPEHR\KianUsa\Files\Excel\14\";
+        private const string Path = @"D:\Projects\Sepehr\KainUsa.Server.App\Data\Excels\1\";
         public ServiceTests()
         {
             ApplicationSettings = new()
             {
-                WwwRootPath = @"F:\Project\SEPEHR\KianUsa\Project\Server\KianUSA.API\wwwroot",
+                WwwRootPath = @"D:\Projects\Sepehr\KainUsa.Server.App\KianUsa.Server.Source\KianUSA.API\wwwroot",
                 StartIndexOfImageForUsingInCatalog = 10
             };
         }
