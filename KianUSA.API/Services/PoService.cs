@@ -1,0 +1,178 @@
+﻿using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
+using KianUSA.API.Helper;
+using KianUSA.Application.Entity;
+using KianUSA.Application.SeedWork;
+using KianUSA.Application.Services.PoData;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace KianUSA.API.Services
+{
+    [Authorize]
+    public class PoService : PoSrv.PoSrvBase
+    {
+        private Application.Services.PoData.PoDataService service;
+        private readonly ILogger<PoService> logger;
+        private readonly IApplicationSettings applicationSettings;
+        public PoService(IApplicationSettings applicationSettings, ILogger<PoService> logger)
+        {
+            this.logger = logger;
+            this.applicationSettings = applicationSettings;
+        }
+        public override async Task<PoResponse> Get(Empty request, ServerCallContext context)
+        {
+            NewService(context);
+            PoDataDto data = service.GetDataByExcel();
+            await service.FillDbData(data);
+            PoResponse result = new();
+            if (data?.Data?.Count > 0)
+                foreach (var item in data.Data)
+                    result.ExcelData.Add(MapToPoData(item));
+            if (data?.ColumnsHavePermission?.Count > 0)
+            {
+                foreach (var colPer in data.ColumnsHavePermission)
+                {                    
+                    result.ColumnsHavePermission.Add(new PoColAccess()
+                    {
+                        ColName = colPer.ColName,
+                        IsWritable = colPer.Writable
+                    });
+                }
+            }                
+            return await Task.FromResult(result);
+        }
+
+        public override async Task<PoSaveResponse> Save(PoDataSaveRequest request, ServerCallContext context)
+        {
+            NewService(context);
+            try
+            {
+                if (request is not null && request.Data?.Count > 0)
+                {
+                    List<Application.Entity.PoData> entities = new();
+                    foreach (var data in request.Data)
+                        entities.Add(MapToPoDataEntity(data));
+
+                    var Result = await service.SaveData(entities);
+                    return await Task.FromResult(MapToPoSaveResult(false, "Data is successfully saved.", Result));
+                }
+                else
+                    return await Task.FromResult(new PoSaveResponse() { IsError = false, Message= "There is not data to save!" });
+            }
+            catch(Exception Ex)
+            {
+                return await Task.FromResult(new PoSaveResponse() { IsError = true, Message = Ex.Message });
+            }
+        }
+        private PoSaveResponse MapToPoSaveResult(bool IsError,string Message, PoSaveDataResultDto data)
+        {
+            var result = new PoSaveResponse()
+            {
+                IsError = IsError,
+                Message = Message
+            };
+            if (data is not null)
+            {
+                if (data.Results?.Count>0)
+                {
+                    foreach (var item in data.Results)
+                    {
+                        result.Results.Add(new PoSaveResult()
+                        {
+                            BookingDate = Tools.DateTimeToDateString(item.BookingDate),
+                            ConfirmDate = Tools.DateTimeToDateString(item.ConfirmDate),
+                            PoNumber = item.PoNumber,
+                            StatusDate = Tools.DateTimeToDateString(item.StatusDate)
+                        });
+                    }
+                }
+            }
+            return result;
+        }
+        private Application.Entity.PoData MapToPoDataEntity(PoDataSave data)
+        {
+            try
+            {
+                return new Application.Entity.PoData()
+                {
+                    PoNumber = data.PONumber,
+                    FactoryStatus = (FactoryStatus?)data.FactoryStatus,
+                    StatusDate = null,
+                    FactoryContainerNumber = data.FactoryContainerNumber,
+                    FactoryBookingDate = null,
+                    DocumentsSendOutDate = Tools.DateStringToDateTime(data.DocumentsSendOutDate),
+
+                    ForwarderName = (ForwarderName?)data.ForwarderName,
+                    BookingDate = Tools.DateStringToDateTime(data.BookingDate),
+                    Rate = data.Rate,
+                    ETD = Tools.DateStringToDateTime(data.ETD),                    
+                    ETA = Tools.DateStringToDateTime(data.ETA),
+                    PortOfDischarge = data.PortOfDischarge,
+                    DischargeStatus = (DischargeStatus?)data.DischargeStatus,
+                    ShippmentStatus = (ShippmentStatus?)data.ShippmentStatus,
+                    ConfirmDate = null,
+
+                    GateIn = Tools.DateStringToDateTime(data.GateIn),
+                    EmptyDate = Tools.DateStringToDateTime(data.EmptyDate),
+                    GateOut = Tools.DateStringToDateTime(data.GateOut),
+                    BillDate = Tools.DateStringToDateTime(data.BillDate)
+                };
+            }
+            catch
+            {
+                throw new Exception("Data is not valid!");
+            }
+        }
+        private PoData MapToPoData(PoExcelDbDataDto dataDto)
+        {
+            return new PoData()
+            {
+                User = Tools.NullStringToEmpty(dataDto.User),
+                Date = Tools.NullStringToEmpty(dataDto.Date),
+                CustomerPO = Tools.NullStringToEmpty(dataDto.CustomerPO),
+                EstimateNumber = Tools.NullStringToEmpty(dataDto.EstimateNumber),
+                Name = Tools.NullStringToEmpty(dataDto.Name),
+                PONumber = Tools.NullStringToEmpty(dataDto.PONumber),
+                DueDate = Tools.NullStringToEmpty(dataDto.DueDate),
+
+                ItemGroup = Tools.NullStringToEmpty(dataDto.ItemGroup),
+                Forwarder = Tools.NullStringToEmpty(dataDto.Forwarder),
+                IOR = Tools.NullStringToEmpty(dataDto.IOR),
+                ShipTo = Tools.NullStringToEmpty(dataDto.ShipTo),
+                ShippingCarrier = Tools.NullStringToEmpty(dataDto.ShippingCarrier),
+                ContainerNumber = Tools.NullStringToEmpty(dataDto.ContainerNumber),
+                ETAAtPort = Tools.NullStringToEmpty(dataDto.ETAAtPort),
+
+                FactoryStatus = (int?)dataDto.FactoryStatus,
+                FactoryStatusNeedsToHaveReadyToGO = dataDto.FactoryStatusNeedsToHaveReadyToGO,
+                StatusDate = Tools.DateTimeToDateString(dataDto.StatusDate),
+                FactoryContainerNumber = Tools.NullStringToEmpty(dataDto.FactoryContainerNumber),
+                FactoryBookingDate = Tools.DateTimeToDateString(dataDto.FactoryBookingDate),
+                DocumentsSendOutDate = Tools.DateTimeToDateString(dataDto.DocumentsSendOutDate),
+
+                ForwarderName = (int?)dataDto.ForwarderName,
+                BookingDate = Tools.DateTimeToDateString(dataDto.BookingDate),
+                Rate = dataDto.Rate,
+                ETD = Tools.DateTimeToDateString(dataDto.ETD),
+                ETA = Tools.DateTimeToDateString(dataDto.ETA),
+                PortOfDischarge = Tools.NullStringToEmpty(dataDto.PortOfDischarge),
+                DischargeStatus = (int?)dataDto.DischargeStatus,
+                ShippmentStatus = (int?)dataDto.ShippmentStatus,
+                ConfirmDate = Tools.DateTimeToDateTimeString(dataDto.ConfirmDate),
+
+                GateIn = Tools.DateTimeToDateTimeString(dataDto.GateIn),
+                EmptyDate = Tools.DateTimeToDateTimeString(dataDto.EmptyDate),
+                GateOut = Tools.DateTimeToDateTimeString(dataDto.GateOut),
+                BillDate = Tools.DateTimeToDateTimeString(dataDto.BillDate)
+            };
+        }
+        private void NewService(ServerCallContext context)
+        {
+            service = new(applicationSettings, Tools.GetRoles(context));
+        }
+    }
+}

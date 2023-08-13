@@ -11,16 +11,19 @@ using KianUSA.Application.Services.Helper;
 namespace KianUSA.Application.Services.Category
 {
     using KianUSA.Application.Entity;
+    using KianUSA.Application.Services.Account;
     using System.Collections.Concurrent;
 
     public class CategoryService
     {
         private readonly IApplicationSettings appSettings;
         private readonly List<string> userRoles;
+        private readonly AuthorizationService Auth;
         public CategoryService(IApplicationSettings appSettings, List<string> userRoles)
         {
             this.appSettings = appSettings;
             this.userRoles = userRoles;
+            Auth = new AuthorizationService(userRoles);
         }
         public async Task<CategoryDto> GetFirstByOrder()
         {
@@ -28,7 +31,7 @@ namespace KianUSA.Application.Services.Category
             var Model = await Db.Categories.OrderBy(x => x.Order).FirstOrDefaultAsync().ConfigureAwait(false);
             if (Model is null)
                 throw new ValidationException("There are not any Categories.");
-            if (!HasCategoryPermission(Model.Security))
+            if (!Auth.HasUserPermissionToUseData(Model.Security))
                 throw new ValidationException("Unfortunately you do not have permissions to see the category");
 
             var Children = await Db.CategoryCategories.Where(x => x.ParentCategoryId == Model.Id).ToListAsync();
@@ -80,7 +83,7 @@ namespace KianUSA.Application.Services.Category
             var Model = await Db.Categories.Where(x => x.Slug == Slug.ToLower().Trim()).FirstOrDefaultAsync().ConfigureAwait(false);
             if (Model is null)
                 throw new ValidationException("Category does not exist.");
-            if (!HasCategoryPermission(Model.Security))
+            if (!Auth.HasUserPermissionToUseData(Model.Security))
                 throw new ValidationException("Unfortunately you do not have permissions to see the category");
 
             var Children = await Db.CategoryCategories.Where(x => x.ParentCategorySlug == Slug.ToLower().Trim()).ToListAsync();
@@ -93,7 +96,7 @@ namespace KianUSA.Application.Services.Category
             var Model = await Db.Categories.FindAsync(Id).ConfigureAwait(false);
             if (Model is null)
                 throw new ValidationException("Category does not exist.");
-            if (!HasCategoryPermission(Model.Security))
+            if (!Auth.HasUserPermissionToUseData(Model.Security))
                 throw new ValidationException("Unfortunately you do not have permissions to see the category");
 
             var Children = await Db.CategoryCategories.Where(x => x.ParentCategoryId == Id).ToListAsync();
@@ -201,7 +204,7 @@ namespace KianUSA.Application.Services.Category
                 List<CategoryShortDto> categoriesWithPermisson = new();
                 foreach (var category in Result)
                 {
-                    if (HasCategoryPermission(category.Security))
+                    if (Auth.HasUserPermissionToUseData(category.Security))
                         categoriesWithPermisson.Add(category);
                 }
                 if (categoriesWithPermisson.Count == 0)
@@ -247,30 +250,30 @@ namespace KianUSA.Application.Services.Category
                 categoriesWithPermisson = new List<Category>();
                 foreach (var category in categories)
                 {
-                    if (HasCategoryPermission(category.Security))
+                    if (Auth.HasUserPermissionToUseData(category.Security))
                         categoriesWithPermisson.Add(category);
                 }
             }
             return categoriesWithPermisson;
         }
 
-        private bool HasCategoryPermission(string security)
-        {
-            if (userRoles.Any(x => string.Equals(x, "admin", StringComparison.OrdinalIgnoreCase)))
-                return true;
+        //private bool HasCategoryPermission(string security)
+        //{
+        //    if (userRoles.Any(x => string.Equals(x, "admin", StringComparison.OrdinalIgnoreCase)))
+        //        return true;
 
-            if (string.IsNullOrWhiteSpace(security))
-                return true;
-            else
-            {
-                string SecuritytoLower = security.ToLower();
-                foreach (var userRole in userRoles)
-                {
-                    if (SecuritytoLower.IndexOf("\"" + userRole.ToLower() + "\"") > 0)
-                        return true;
-                }
-            }
-            return false;
-        }
+        //    if (string.IsNullOrWhiteSpace(security))
+        //        return true;
+        //    else
+        //    {
+        //        string SecuritytoLower = security.ToLower();
+        //        foreach (var userRole in userRoles)
+        //        {
+        //            if (SecuritytoLower.IndexOf("\"" + userRole.ToLower() + "\"") > 0)
+        //                return true;
+        //        }
+        //    }
+        //    return false;
+        //}
     }
 }

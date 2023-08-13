@@ -3,15 +3,17 @@ using System;
 using KianUSA.Application.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace KianUSA.Application.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20230709113521_2023-09-09")]
+    partial class _20230909
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -232,10 +234,6 @@ namespace KianUSA.Application.Migrations
                     b.Property<DateTime?>("FactoryBookingDate")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<string>("FactoryContainerNumber")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
                     b.Property<int?>("FactoryStatus")
                         .HasColumnType("integer");
 
@@ -251,14 +249,14 @@ namespace KianUSA.Application.Migrations
                     b.Property<string>("PortOfDischarge")
                         .HasColumnType("text");
 
-                    b.Property<double?>("Rate")
-                        .HasColumnType("double precision");
+                    b.Property<string>("Rate")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ReadyDate")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int?>("ShippmentStatus")
                         .HasColumnType("integer");
-
-                    b.Property<DateTime?>("StatusDate")
-                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("PoNumber");
 

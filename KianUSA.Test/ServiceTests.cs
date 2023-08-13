@@ -1,6 +1,7 @@
 using KianUSA.API.Configuration;
 using KianUSA.Application.Services.Catalog;
 using KianUSA.Application.Services.Email;
+using KianUSA.Application.Services.PoData;
 using KianUSA.Application.Services.UpdateDataByExcel;
 using System;
 using System.Collections.Generic;
@@ -14,13 +15,14 @@ namespace KianUSA.Test
     public class ServiceTests
     {
         private readonly ApplicationSettings ApplicationSettings;
-        private const string Path = @"D:\Projects\Sepehr\KainUsa.Server.App\Data\Excels\1\";
+        private const string Path = @"D:\Projects\Sepehr\KainUsa.Server.App\Data\Excels\2\";
         public ServiceTests()
         {
             ApplicationSettings = new()
             {
                 WwwRootPath = @"D:\Projects\Sepehr\KainUsa.Server.App\KianUsa.Server.Source\KianUSA.API\wwwroot",
-                StartIndexOfImageForUsingInCatalog = 10
+                StartIndexOfImageForUsingInCatalog = 10,
+                PoDataPath = "D:\\Projects\\Sepehr\\KainUsa.Server.App\\Data\\Account\\Po.xlsx"
             };
         }
         [Trait("Creator", "Database Data")]
@@ -88,6 +90,14 @@ namespace KianUSA.Test
                 ContactUsEmailSetting = "contact-us-email-setting"
             });
             await Srv.SendContactUs("Mehdi", "Ahmady", "123-123-1234", "Mehdi.fr@gmail.com", "woowo asajd asdjuad  asdjaksdjasd asd adjasdbnas daskjdasd asd a asdasd.");
+        }
+
+        [Trait("Po", "Excel")]
+        [Fact]
+        public void GetPoData()
+        {
+            PoDataService srv = new PoDataService(ApplicationSettings, new List<string>() { "admin" });
+            srv.GetDataByExcel();
         }
         //[Trait("Generate", "Catalogs")]
         //[Fact, Priority(9)]

@@ -22,7 +22,7 @@ namespace KianUSA.Application.Services.UpdateDataByExcel.Helper
                 {
                     ConfigureDataTable = (tableReader) => new ExcelDataTableConfiguration()
                     {
-                        UseHeaderRow = true
+                        UseHeaderRow = true                        
                     }
                 });
                 reader.Close();
@@ -231,6 +231,20 @@ namespace KianUSA.Application.Services.UpdateDataByExcel.Helper
             return System.Text.Json.JsonSerializer.Serialize(DataList);
         }
 
+        public static string DateTimeToDateString(object value, string Format = "MM-dd-yyyy")
+        {
+            if (value is null || value is not DateTime)
+                return null;
+            try
+            {
+                return ((DateTime)value).ToString(Format);
+            }
+            catch
+            {
+
+            }
+            return null;
+        }
 
     }
 }
