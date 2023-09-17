@@ -52,5 +52,11 @@ namespace KianUSA.Application.Services.PoData
         public DateTime? GateOut { get; set; }
         //Ap
         public DateTime? BillDate { get; set; }
+
+        /// <summary>
+        /// سطح دسترسی مربوط به نمایش این سطر
+        /// لیست نقش های مجاز
+        /// </summary>
+        public string Rep { get; set; }
     }
 }

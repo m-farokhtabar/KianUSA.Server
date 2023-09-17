@@ -87,6 +87,7 @@ import "google/protobuf/wrappers.proto";
         string StatusDate = 3;
         string BookingDate = 4;
         string Message = 5;
+        bool FactoryStatusNeedsToHaveReadyToGO = 6;
     }
     service PoSrv{
         rpc Get(google.protobuf.Empty) returns(PoResponse);

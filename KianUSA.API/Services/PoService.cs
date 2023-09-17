@@ -26,8 +26,8 @@ namespace KianUSA.API.Services
         public override async Task<PoResponse> Get(Empty request, ServerCallContext context)
         {
             NewService(context);
-            PoDataDto data = service.GetDataByExcel();
-            await service.FillDbData(data);
+            (PoDataDto data, PoSecurityData Security) = service.GetDataByExcel();
+            await service.FillDbData(data, Security);
             PoResponse result = new();
             if (data?.Data?.Count > 0)
                 foreach (var item in data.Data)
@@ -86,7 +86,8 @@ namespace KianUSA.API.Services
                             BookingDate = Tools.DateTimeToDateString(item.BookingDate),
                             ConfirmDate = Tools.DateTimeToDateString(item.ConfirmDate),
                             PoNumber = item.PoNumber,
-                            StatusDate = Tools.DateTimeToDateString(item.StatusDate)
+                            StatusDate = Tools.DateTimeToDateString(item.StatusDate),
+                            FactoryStatusNeedsToHaveReadyToGO = item.FactoryStatusNeedsToHaveReadyToGO
                         });
                     }
                 }
@@ -162,12 +163,12 @@ namespace KianUSA.API.Services
                 PortOfDischarge = Tools.NullStringToEmpty(dataDto.PortOfDischarge),
                 DischargeStatus = (int?)dataDto.DischargeStatus,
                 ShippmentStatus = (int?)dataDto.ShippmentStatus,
-                ConfirmDate = Tools.DateTimeToDateTimeString(dataDto.ConfirmDate),
+                ConfirmDate = Tools.DateTimeToDateString(dataDto.ConfirmDate),
 
-                GateIn = Tools.DateTimeToDateTimeString(dataDto.GateIn),
-                EmptyDate = Tools.DateTimeToDateTimeString(dataDto.EmptyDate),
-                GateOut = Tools.DateTimeToDateTimeString(dataDto.GateOut),
-                BillDate = Tools.DateTimeToDateTimeString(dataDto.BillDate)
+                GateIn = Tools.DateTimeToDateString(dataDto.GateIn),
+                EmptyDate = Tools.DateTimeToDateString(dataDto.EmptyDate),
+                GateOut = Tools.DateTimeToDateString(dataDto.GateOut),
+                BillDate = Tools.DateTimeToDateString(dataDto.BillDate)
             };
         }
         private void NewService(ServerCallContext context)

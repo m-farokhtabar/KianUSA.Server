@@ -47,7 +47,7 @@ namespace KianUSA.Application.Services.PoData
     {
         public ColPermission(string colRoles, string writable, AuthorizationService authorizationService)
         {
-            HasAccess = authorizationService.HasUserPermissionToUseData(colRoles);
+            HasAccess = authorizationService.HasUserPermissionToUseData(colRoles); 
             Writable = authorizationService.IsWritableColumn(writable, colRoles);
         }        
         public bool HasAccess { get; set; }

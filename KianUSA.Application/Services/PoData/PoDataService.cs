@@ -23,15 +23,16 @@ namespace KianUSA.Application.Services.PoData
             Auth = new AuthorizationService(userRoles);
         }
 
-        public PoDataDto GetDataByExcel()
+        public (PoDataDto, PoSecurityData) GetDataByExcel()
         {
             PoDataDto Result = null;
+            PoSecurityData ColSecurity = null;
             var Tables = GetExcelTables();
             try
             {
                 if (Tables?.Count > 0 && Tables[0].Rows?.Count > 0)
                 {
-                    PoSecurityData ColSecurity = GetSecurity(Tables);
+                    ColSecurity = GetSecurity(Tables);
 
                     Result = new PoDataDto
                     {
@@ -45,7 +46,7 @@ namespace KianUSA.Application.Services.PoData
                         if (ColSecurity.Date.HasAccess)
                             Result.ColumnsHavePermission.Add(new ColAccess("Date", ColSecurity.Date.Writable));
                         if (ColSecurity.CustomerPO.HasAccess)
-                            Result.ColumnsHavePermission.Add(new ColAccess("Customer P", ColSecurity.CustomerPO.Writable));
+                            Result.ColumnsHavePermission.Add(new ColAccess("Customer PO", ColSecurity.CustomerPO.Writable));
                         if (ColSecurity.EstimateNumber.HasAccess)
                             Result.ColumnsHavePermission.Add(new ColAccess("Estimate Number", ColSecurity.EstimateNumber.Writable));
                         if (ColSecurity.Name.HasAccess)
@@ -114,29 +115,38 @@ namespace KianUSA.Application.Services.PoData
                     for (int i = 0; i < Tables[0].Rows.Count; i++)
                     {
                         var row = Tables[0].Rows[i];
-                        if (Auth.HasUserPermissionToUseData(row["Rep"].ToString().Trim()))
-                        {
-                            var rowData = new PoExcelDbDataDto()
-                            {
-                                User = ColSecurity.User.HasAccess ? row["User"].ToString().Trim() : null,
-                                Date = ColSecurity.Date.HasAccess ? UpdateByExcelHelper.DateTimeToDateString(row["Date"]) : null,
-                                CustomerPO = ColSecurity.CustomerPO.HasAccess ? row["Customer PO"].ToString().Trim() : null,
-                                EstimateNumber = ColSecurity.EstimateNumber.HasAccess ? row["Estimate Number"].ToString().Trim() : null,
-                                Name = ColSecurity.Name.HasAccess ? row["Name"].ToString().Trim() : null,
-                                //PONumber = ColSecurity.PONumber.HasAccess ? row["PO Number"].ToString().Trim() : null,
-                                PONumber = row["PO Number"].ToString().Trim(),
-                                DueDate = ColSecurity.DueDate.HasAccess ? UpdateByExcelHelper.DateTimeToDateString(row["Due Date"]) : null,
 
-                                ItemGroup = ColSecurity.ItemGroup.HasAccess ? row["Item Group"].ToString().Trim() : null,
-                                Forwarder = ColSecurity.Forwarder.HasAccess ? row["Forwarder"].ToString().Trim() : null,
-                                IOR = ColSecurity.IOR.HasAccess ? row["IOR"].ToString().Trim() : null,
-                                ShipTo = ColSecurity.ShipTo.HasAccess ? row["Ship To"].ToString().Trim() : null,
-                                ShippingCarrier = ColSecurity.ShippingCarrier.HasAccess ? row["Shipping Carrier"].ToString().Trim() : null,
-                                ContainerNumber = ColSecurity.ContainerNumber.HasAccess ? row["Container Number"].ToString().Trim() : null,
-                                ETAAtPort = ColSecurity.ContainerNumber.HasAccess ? row["ETA at Port"].ToString().Trim() : null
-                            };
-                            Result.Data.Add(rowData);
-                        }
+                        ////به دلیل اینکه در زمان چک کردن نقش تابع نقش خالی را مجوز می دهد به همین خاطر یک چیزی داخلش گذاشتم که این حالت پیش نیاد
+                        //string ForwarderNameRole = "[]";
+                        //if (string.IsNullOrWhiteSpace(row["Forwarder"].ToString()))
+                        //    ForwarderNameRole = "[\"" + row["Forwarder"].ToString().Trim() + "\"]";
+                        ////هم نقش های معمول را چک میکند هم فیلد فوروادر را به عنوان نقش چک می کند که ببینید به این سطر دسترسی دارد یا نه
+                        //if (Auth.HasUserPermissionToUseData(row["Rep"].ToString().Trim()) || Auth.HasUserPermissionToUseData(ForwarderNameRole))
+                        //{
+                        var rowData = new PoExcelDbDataDto()
+                        {
+                            User = ColSecurity.User.HasAccess ? row["User"].ToString().Trim() : null,
+                            Date = ColSecurity.Date.HasAccess ? UpdateByExcelHelper.DateTimeToDateString(row["Date"]) : null,
+                            CustomerPO = ColSecurity.CustomerPO.HasAccess ? row["Customer PO"].ToString().Trim() : null,
+                            EstimateNumber = ColSecurity.EstimateNumber.HasAccess ? row["Estimate Number"].ToString().Trim() : null,
+                            Name = ColSecurity.Name.HasAccess ? row["Name"].ToString().Trim() : null,
+                            //PONumber = ColSecurity.PONumber.HasAccess ? row["PO Number"].ToString().Trim() : null,
+                            PONumber = row["PO Number"].ToString().Trim(),
+                            DueDate = ColSecurity.DueDate.HasAccess ? UpdateByExcelHelper.DateTimeToDateString(row["Due Date"]) : null,
+
+                            ItemGroup = ColSecurity.ItemGroup.HasAccess ? row["Item Group"].ToString().Trim() : null,
+                            Forwarder = ColSecurity.Forwarder.HasAccess ? row["Forwarder"].ToString().Trim() : null,
+                            IOR = ColSecurity.IOR.HasAccess ? row["IOR"].ToString().Trim() : null,
+                            //ShipTo = ColSecurity.ShipTo.HasAccess ? row["Ship To"].ToString().Trim() : null,
+                            //فعلا دسترسی ستون رو بهش نمی دیم چو بهش نیاز داریم برای سطح دسترسی سطر ها
+                            ShipTo = row["Ship To"].ToString().Trim(),
+                            ShippingCarrier = ColSecurity.ShippingCarrier.HasAccess ? row["Shipping Carrier"].ToString().Trim() : null,
+                            ContainerNumber = ColSecurity.ContainerNumber.HasAccess ? row["Container Number"].ToString().Trim() : null,
+                            ETAAtPort = ColSecurity.ContainerNumber.HasAccess ? row["ETA at Port"].ToString().Trim() : null,
+                            Rep = row["Rep"].ToString().Trim()
+                        };
+                        Result.Data.Add(rowData);
+                        //}
                     }
                 }
             }
@@ -144,12 +154,13 @@ namespace KianUSA.Application.Services.PoData
             {
                 throw new Exception("there are some errors during reading data from excel.");
             }
-            return Result;
-        }   
-        public async Task FillDbData(PoDataDto pOData)
+            return (Result, ColSecurity);
+        }
+        public async Task FillDbData(PoDataDto pOData, PoSecurityData ColSecurity)
         {
             using var Db = new Context();
             var models = await Db.PoDatas.AsNoTracking().ToListAsync();
+
             if (models?.Count > 0 && pOData.Data?.Count > 0)
             {
                 foreach (var data in pOData.Data)
@@ -157,40 +168,53 @@ namespace KianUSA.Application.Services.PoData
                     var model = models.FirstOrDefault(x => string.Equals(x.PoNumber, data.PONumber, StringComparison.OrdinalIgnoreCase));
                     if (model is not null)
                     {
-                        data.FactoryStatus = model.FactoryStatus;
-                        data.StatusDate = model.StatusDate;                        
-                        data.FactoryContainerNumber = model.FactoryContainerNumber;
-                        data.FactoryBookingDate = model.FactoryBookingDate;
-                        data.DocumentsSendOutDate = model.DocumentsSendOutDate;
+                        data.FactoryStatus = ColSecurity.FactoryStatus.HasAccess ? model.FactoryStatus : null;
+                        data.StatusDate = ColSecurity.StatusDate.HasAccess ? model.StatusDate : null;
+                        data.FactoryContainerNumber = ColSecurity.FactoryContainerNumber.HasAccess ? model.FactoryContainerNumber : null;
+                        data.FactoryBookingDate = ColSecurity.FactoryBookingDate.HasAccess ? model.FactoryBookingDate : null;
+                        data.DocumentsSendOutDate = ColSecurity.DocumentsSendOutDate.HasAccess ? model.DocumentsSendOutDate : null;
 
 
-                        data.ForwarderName = model.ForwarderName;                        
-                        data.BookingDate = model.BookingDate;
-                        data.Rate = model.Rate;
-                        data.ETD = model.ETD;
+                        //فعلا دسترسی ستون رو بهش نمی دیم چو بهش نیاز داریم برای سطح دسترسی سطر ها
+                        //data.ForwarderName = ColSecurity.ForwarderName.HasAccess ?  model.ForwarderName : null;
+                        data.ForwarderName = model.ForwarderName;
+                        data.BookingDate = ColSecurity.BookingDate.HasAccess ? model.BookingDate : null;
+                        data.Rate = ColSecurity.Rate.HasAccess ? model.Rate : null;
+                        data.ETD = ColSecurity.ETD.HasAccess ? model.ETD : null;
                         data.FactoryStatusNeedsToHaveReadyToGO = data.ETD.HasValue && (data.ETD.Value.Subtract(DateTime.Now).TotalDays <= 14);
-                        data.ETA = model.ETA;
-                        data.PortOfDischarge = model.PortOfDischarge;
-                        data.DischargeStatus = model.DischargeStatus;
+                        data.ETA = ColSecurity.ETA.HasAccess ? model.ETA : null;
+                        data.PortOfDischarge = ColSecurity.PortOfDischarge.HasAccess ? model.PortOfDischarge : null;
+                        data.DischargeStatus = ColSecurity.DischargeStatus.HasAccess ? model.DischargeStatus : null;
 
-                        data.ShippmentStatus = model.ShippmentStatus;
-                        data.ConfirmDate = model.ConfirmDate;
+                        data.ShippmentStatus = ColSecurity.ShippmentStatus.HasAccess ? model.ShippmentStatus : null;
+                        data.ConfirmDate = ColSecurity.ConfirmDate.HasAccess ? model.ConfirmDate : null;
 
-                        data.GateIn = model.GateIn;
-                        data.EmptyDate = model.EmptyDate;
-                        data.GateOut = model.GateOut;
+                        data.GateIn = ColSecurity.GateIn.HasAccess ? model.GateIn : null;
+                        data.EmptyDate = ColSecurity.EmptyDate.HasAccess ? model.EmptyDate : null;
+                        data.GateOut = ColSecurity.GateOut.HasAccess ? model.GateOut : null;
 
-                        data.BillDate = model.BillDate;
+                        data.BillDate = ColSecurity.BillDate.HasAccess ? model.BillDate : null;
                     }
 
                 }
             }
+            GetRowsWhichHaveBeAccessedByUser(pOData);
+            if (pOData.Data?.Count > 0)
+            {
+                foreach (var data in pOData.Data)
+                {
+                    data.ForwarderName = ColSecurity.ForwarderName.HasAccess ? data.ForwarderName : null;
+                    data.ShipTo = ColSecurity.ShipTo.HasAccess ? data.ShipTo : null;
+                }
+            }
             pOData.Data = pOData.Data?.Where(x => x.BillDate is null).ToList();
+
         }
         public async Task<PoSaveDataResultDto> SaveData(List<Entity.PoData> data)
         {
-            PoSaveDataResultDto result = null;            
-            List<(string poNumber, string role)> PoNumbers = new();
+            PoSaveDataResultDto result = null;
+            //List<(string poNumber, string role)> PoNumbers = new();
+            List<(string PoNumber, string ShipTo, string Rep)> PoNumbers = new();
             PoSecurityData ColSecurity = null;
             var Tables = GetExcelTables();
             if (Tables?.Count > 0 && Tables[0].Rows?.Count > 0)
@@ -199,12 +223,19 @@ namespace KianUSA.Application.Services.PoData
                 for (int i = 0; i < Tables[0].Rows.Count; i++)
                 {
                     var row = Tables[0].Rows[i];
-                    if (Auth.HasUserPermissionToUseData(row["Rep"].ToString().Trim()))
-                        PoNumbers.Add((row["PO Number"].ToString().Trim().ToLower(), row["Rep"].ToString().Trim()));
+                    //دقت من عمدا 
+                    //ForwarderName.Apex
+                    //که لیست همه رو بده که بتونیم بعدا واکشی کنیم
+                    if (HasUserPermissionToThisRow(row["Rep"].ToString().Trim(), ForwarderName.Apex, row["PO Number"].ToString().Trim(), row["Ship To"].ToString().Trim()))
+                    {
+                        //PoNumbers.Add((row["PO Number"].ToString().Trim().ToLower(), row["Rep"].ToString().Trim()));
+                        PoNumbers.Add((row["PO Number"].ToString().Trim().ToLower(), row["Ship To"].ToString().Trim(), row["Rep"].ToString().Trim()));
+                    }
                 }
             }
+
             using var Db = new Context();
-            var DbData = await Db.PoDatas.Where(x => PoNumbers.Select(x => x.poNumber).ToList().Contains(x.PoNumber)).ToListAsync();
+            var DbData = await Db.PoDatas.Where(x => PoNumbers.Select(x => x.PoNumber).ToList().Contains(x.PoNumber)).ToListAsync();
             result = new PoSaveDataResultDto
             {
                 Results = new List<PoSaveDataOutput>()
@@ -212,19 +243,24 @@ namespace KianUSA.Application.Services.PoData
             foreach (var item in data)
             {
                 string Message = "";
-                var PoNumber = PoNumbers.FirstOrDefault(x => string.Equals(x.poNumber, item.PoNumber?.Trim().ToLower()));
+                bool FactoryStatusNeedsToHaveReadyToGO = false;
+                var PoNumber = PoNumbers.FirstOrDefault(x => string.Equals(x.PoNumber, item.PoNumber?.Trim().ToLower()));
                 //بررسی اینکه کد رکورد اصلا در اکسل وجود دارد یا نه
-                if (!string.IsNullOrWhiteSpace(PoNumber.poNumber))
-                {
+                if (!string.IsNullOrWhiteSpace(PoNumber.PoNumber))
+                {                    
                     var dbItem = DbData.FirstOrDefault(x => string.Equals(x.PoNumber, item.PoNumber, StringComparison.OrdinalIgnoreCase));
                     if (dbItem is null || dbItem.BillDate == null)
                     {
+                        //یعنی رکورد در پایگاه وجو ندارد
                         if (dbItem is null)
                         {
-                            if (Auth.HasUserPermissionToUseData(PoNumber.role))
+                            //اگر دسترسی داشته باشد دقت شود در این حالت ما
+                            //forawarder 
+                            //نداریم
+                            if (HasUserPermissionToThisRow(PoNumber.Rep, null, PoNumber.PoNumber, PoNumber.ShipTo))
                             {
                                 var currentDate = DateTime.Now;
-                                item.PoNumber = PoNumber.poNumber;
+                                item.PoNumber = PoNumber.PoNumber;
                                 if (!ColSecurity.FactoryStatus.Writable)
                                 {
                                     item.FactoryStatus = null;
@@ -239,11 +275,17 @@ namespace KianUSA.Application.Services.PoData
                                         item.BookingDate = currentDate;
                                     //گزینه Ready To Go زمانی بتونی   ثبت کنه که تاریخ فعلی باید  حداقل چهارده روز قبل از etd باشد یعنی اگر 15 روز بود نمی تونه ولی اگر چهارده روز یا سیزده روز بود می تونه
                                     if (item.FactoryStatus == FactoryStatus.ReadyToGo)
-                                        if (!(item.ETD.HasValue && (item.ETD.Value.Subtract(currentDate).TotalDays <= 14)))
+                                    {
+                                        if (!(item.ETD.HasValue && ColSecurity.ETA.Writable && (item.ETD.Value.Subtract(currentDate).TotalDays <= 14)))
                                         {
                                             Message = "Cannot Accept FactoryStatus As a ReadyToGo because of ETD Date";
                                             item.FactoryStatus = null;
                                         }
+                                        else
+                                        {
+                                            FactoryStatusNeedsToHaveReadyToGO = true;
+                                        }
+                                    }
                                 }
                                 //if (!ColSecurity.StatusDate.Writable)
                                 //    item.StatusDate = null;
@@ -261,6 +303,11 @@ namespace KianUSA.Application.Services.PoData
                                     item.Rate = null;
                                 if (!ColSecurity.ETD.Writable)
                                     item.ETD = null;
+                                else
+                                {
+                                    if (item.ETD.HasValue && item.ETD.Value.Subtract(currentDate).TotalDays <= 14)
+                                        FactoryStatusNeedsToHaveReadyToGO = true;
+                                }
                                 if (!ColSecurity.ETA.Writable)
                                     item.ETA = null;
                                 if (!ColSecurity.PortOfDischarge.Writable)
@@ -286,18 +333,16 @@ namespace KianUSA.Application.Services.PoData
                                 if (!ColSecurity.BillDate.Writable)
                                     item.BillDate = null;
                                 Db.PoDatas.Add(item);
-                                result.Results.Add(new PoSaveDataOutput(item.PoNumber, item.ConfirmDate, item.StatusDate, item.BookingDate, ""));
+                                result.Results.Add(new PoSaveDataOutput(item.PoNumber, item.ConfirmDate, item.StatusDate, item.BookingDate, "", FactoryStatusNeedsToHaveReadyToGO));
                             }
                         }
                         //یعنی رکورد قبلا در پایگاه داده بوده
                         else
                         {
-                            //به دلیل اینکه در زمان چک کردن نقش تابع نقش خالی را مجوز می دهد به همین خاطر یک چیزی داخلش گذاشتم که این حالت پیش نیاد
-                            string ForwarderNameRole = "[]";
-                            if (item.ForwarderName.HasValue)
-                                ForwarderNameRole = "[\"" + Enum.GetName(typeof(ForwarderName), item.ForwarderName) + "\"]";                            
-                            //هم نقش های معمول را چک میکند هم فیلد فوروادر را به عنوان نقش چک می کند که ببینید به این سطر دسترسی دارد یا نه
-                            if (Auth.HasUserPermissionToUseData(PoNumber.role) || Auth.HasUserPermissionToUseData(ForwarderNameRole))
+                            //دقت شود باید آخرین وضعیت مربوط به
+                            //ForwarderName
+                            //را که در زمان خواندن است بررسی کرد نه وضعیت جدیدی که کاربر وارد کرده است
+                            if (HasUserPermissionToThisRow(PoNumber.Rep, dbItem.ForwarderName, PoNumber.PoNumber, PoNumber.ShipTo))
                             {
                                 var currentDate = DateTime.Now;
                                 if (ColSecurity.FactoryStatus.Writable)
@@ -318,9 +363,17 @@ namespace KianUSA.Application.Services.PoData
                                                 else
                                                 {
                                                     //گزینه Ready To Go زمانی بتونی   ثبت کنه که تاریخ فعلی باید  حداقل چهارده روز قبل از etd باشد یعنی اگر 15 روز بود نمی تونه ولی اگر چهارده روز یا سیزده روز بود می تونه
-                                                    if (item.FactoryStatus == FactoryStatus.ReadyToGo && item.ETD.HasValue && (item.ETD.Value.Subtract(currentDate).TotalDays <= 14))
-                                                    {                                                        
-                                                        Message = "Cannot Accept FactoryStatus As a ReadyToGo because of ETD Date";
+                                                    if (item.FactoryStatus == FactoryStatus.ReadyToGo)
+                                                    {
+                                                        if (!(ColSecurity.ETD.Writable && item.ETD.HasValue && (item.ETD.Value.Subtract(currentDate).TotalDays <= 14)))
+                                                        {
+                                                            Message = "Cannot Accept FactoryStatus As a ReadyToGo because of ETD Date";
+                                                        }
+                                                        else
+                                                        {
+                                                            dbItem.FactoryStatus = item.FactoryStatus;
+                                                            FactoryStatusNeedsToHaveReadyToGO = true;
+                                                        }
                                                     }
                                                     else
                                                     {
@@ -338,7 +391,7 @@ namespace KianUSA.Application.Services.PoData
                                             dbItem.BookingDate = null;
                                             dbItem.FactoryStatus = item.FactoryStatus;
                                         }
-                                        
+
                                     }
                                 }
                                 //if (ColSecurity.StatusDate.Writable)
@@ -356,7 +409,11 @@ namespace KianUSA.Application.Services.PoData
                                 if (ColSecurity.Rate.Writable)
                                     dbItem.Rate = item.Rate;
                                 if (ColSecurity.ETD.Writable)
+                                {
                                     dbItem.ETD = item.ETD;
+                                    if (item.ETD.HasValue && item.ETD.Value.Subtract(currentDate).TotalDays <= 14)
+                                        FactoryStatusNeedsToHaveReadyToGO = true;
+                                }
                                 if (ColSecurity.ETA.Writable)
                                     dbItem.ETA = item.ETA;
                                 if (ColSecurity.PortOfDischarge.Writable)
@@ -381,7 +438,7 @@ namespace KianUSA.Application.Services.PoData
                                 if (ColSecurity.BillDate.Writable)
                                     dbItem.BillDate = item.BillDate;
 
-                                result.Results.Add(new PoSaveDataOutput(dbItem.PoNumber, dbItem.ConfirmDate, dbItem.StatusDate, dbItem.BookingDate, Message));
+                                result.Results.Add(new PoSaveDataOutput(dbItem.PoNumber, dbItem.ConfirmDate, dbItem.StatusDate, dbItem.BookingDate, Message, FactoryStatusNeedsToHaveReadyToGO));
                             }
                         }
                     }
@@ -391,6 +448,58 @@ namespace KianUSA.Application.Services.PoData
             return result;
         }
 
+        /// <summary>
+        /// این متد مشخص می کند که کاربر به کدام سطر دسترسی دارد و به کدام ندارد
+        /// </summary>
+        /// <param name="pOData"></param>
+        private void GetRowsWhichHaveBeAccessedByUser(PoDataDto pOData)
+        {
+            List<PoExcelDbDataDto> AuthorizedRows = new();
+            foreach (var data in pOData.Data)
+            {
+                if (HasUserPermissionToThisRow(data.Rep, data.ForwarderName, data.PONumber, data.ShipTo))
+                    AuthorizedRows.Add(data);
+            }
+            if (AuthorizedRows.Count > 0)
+                pOData.Data = AuthorizedRows;
+            else
+                pOData.Data = null;
+        }
+        private bool HasUserPermissionToThisRow(string Rep, ForwarderName? ForwarderName, string PONumber, string ShipTo)
+        {
+            //به دلیل اینکه در زمان چک کردن نقش تابع نقش خالی را مجوز می دهد به همین خاطر یک چیزی داخلش گذاشتم که این حالت پیش نیاد
+            string PONumberRole = "[]";
+            if (PONumber.StartsWith("LY", StringComparison.OrdinalIgnoreCase) ||
+                PONumber.StartsWith("KF", StringComparison.OrdinalIgnoreCase) ||
+                PONumber.StartsWith("MH", StringComparison.OrdinalIgnoreCase) ||
+                PONumber.StartsWith("DB", StringComparison.OrdinalIgnoreCase))
+            {
+                PONumberRole = "[\"" + PONumber[0..2] + " Factory\"]";
+            }
+            //به دلیل اینکه در زمان چک کردن نقش تابع نقش خالی را مجوز می دهد به همین خاطر یک چیزی داخلش گذاشتم که این حالت پیش نیاد
+            string ShipToRole = "[]";
+            if (string.IsNullOrWhiteSpace(ShipTo))
+            {
+                if (ShipTo.StartsWith("KIAN USA", StringComparison.OrdinalIgnoreCase))
+                    ShipToRole = "[\"Harmun_Trucking\",\"KIAN_Employee_WH\"]";
+            }
+
+            if (Auth.HasUserPermissionToUseData(Rep) ||
+                HasUserPermissionByCheckForwarderNameToThisRow(ForwarderName) || Auth.HasUserPermissionToUseData(PONumberRole) || Auth.HasUserPermissionToUseData(ShipToRole))
+            {
+                return true;
+            }
+            return false;
+        }
+        private bool HasUserPermissionByCheckForwarderNameToThisRow(ForwarderName? ForwarderName)
+        {
+            //به دلیل اینکه در زمان چک کردن نقش تابع نقش خالی را مجوز می دهد به همین خاطر یک چیزی داخلش گذاشتم که این حالت پیش نیاد
+            string ForwarderNameRole = "[]";
+            if (ForwarderName.HasValue)
+                ForwarderNameRole = "[\"" + Enum.GetName(typeof(ForwarderName), ForwarderName) + "\"]";
+
+            return Auth.HasUserPermissionToUseData(ForwarderNameRole);
+        }
         private PoSecurityData GetSecurity(DataTableCollection Tables)
         {
             PoSecurityData ColSecurity = null;
