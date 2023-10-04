@@ -406,7 +406,7 @@ namespace KianUSA.Application.Services.PoData
                                     dbItem.ForwarderName = item.ForwarderName;
                                 if (ColSecurity.FactoryBookingDate.Writable)
                                     dbItem.FactoryBookingDate = item.FactoryBookingDate;
-                                if (ColSecurity.Rate.Writable)
+                                if (ColSecurity.Rate.Writable && dbItem.ShippmentStatus != 0)
                                     dbItem.Rate = item.Rate;
                                 if (ColSecurity.ETD.Writable)
                                 {
@@ -422,11 +422,28 @@ namespace KianUSA.Application.Services.PoData
                                     dbItem.DischargeStatus = item.DischargeStatus;
                                 if (ColSecurity.ShippmentStatus.Writable)
                                 {
-                                    if ((!dbItem.ShippmentStatus.HasValue || dbItem.ShippmentStatus != ShippmentStatus.PleaseAccept) &&
-                                        item.ShippmentStatus == ShippmentStatus.PleaseAccept)
-                                        dbItem.ConfirmDate = currentDate;
+                                    //یعنی قبلا چیزی برای وضعیت ترانزیت مشخص نشده بود
+                                    if (!dbItem.ShippmentStatus.HasValue)
+                                    {
+                                        //اگر قبلا چیزی وارد نشده بود و حالا نوع انتقال رو در حالت پذیرفتن زده 
+                                        if (item.ShippmentStatus.HasValue && item.ShippmentStatus == ShippmentStatus.PleaseAccept)
+                                            dbItem.ConfirmDate = currentDate;
+                                        else
+                                            dbItem.ConfirmDate = null;
+                                    }
+                                    //وضعیت ترازیت قبلا مقدار داشته
                                     else
-                                        dbItem.ConfirmDate = null;
+                                    {
+                                        //وضعیت ترانزیت رو کاربر مشخص نکرده
+                                        if (!item.ShippmentStatus.HasValue)
+                                            dbItem.ConfirmDate = null;
+                                        //وضعیت را کاربر مشخص کرده و حالت پذیرفتن نیست
+                                        else if (item.ShippmentStatus != ShippmentStatus.PleaseAccept)
+                                            dbItem.ConfirmDate = null;
+                                        //وضعیت را کاربر مشخص کرده و حالت پذیرفتن است و  در پایگاه داده هم قبلا وضعیت پذیرفتن ثبت نشده است
+                                        else if (dbItem.ShippmentStatus != ShippmentStatus.PleaseAccept)
+                                            dbItem.ConfirmDate = currentDate;
+                                    }
                                     dbItem.ShippmentStatus = item.ShippmentStatus;
                                 }
                                 if (ColSecurity.GateIn.Writable)
