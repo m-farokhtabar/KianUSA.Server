@@ -117,7 +117,7 @@ namespace KianUSA.Application.Services.Email
                     string Body = Setting.BodyTemplate.Replace("{Name}", Name).Replace("{Family}", Family).Replace("{Phone}", Phone)
                                                       .Replace("{Email}", Email).Replace("{Comment}", Comment)
                                                       .Replace("{CurrentDate}", DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLongTimeString());
-                    await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, Setting.UserName, Body);
+                    await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, Setting.UserName, Body, null,Setting.Cc,Setting.Bcc);
 
                 }
                 catch
