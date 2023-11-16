@@ -129,7 +129,7 @@ namespace KianUSA.Application.Services.Email
                 throw new Exception("Email setting is not valid.");
         }
 
-        public async Task SendOrder(OrderDto Order, List<Entity.Product> Products, string UserFullName, string RepEmail, CustomerDto Customer, DateTime OrderDate, string ConfirmedBy, string InvoiceNumber, string PoNumber)
+        public async Task SendOrder(OrderDto Order, List<Domain.Entity.Product> Products, string UserFullName, string RepEmail, CustomerDto Customer, DateTime OrderDate, string ConfirmedBy, string InvoiceNumber, string PoNumber)
         {
             string AssetCatalogPath = settings.WwwRootPath + @"\Assets\Email\";
             string OrderEmailTemplate = await File.ReadAllTextAsync($"{AssetCatalogPath}OrderEmailTemplate.html");
@@ -207,7 +207,7 @@ namespace KianUSA.Application.Services.Email
             else
                 throw new Exception("Email setting is not valid.");
         }
-        private decimal GetPrice(Entity.Product Model, PriceType Type, TariffType Tariff, double Cost)
+        private decimal GetPrice(Domain.Entity.Product Model, PriceType Type, TariffType Tariff, double Cost)
         {
             decimal Result = 0;
             List<ProductPriceDto> Prices = !string.IsNullOrWhiteSpace(Model.Price) ? System.Text.Json.JsonSerializer.Deserialize<List<ProductPriceDto>>(Model.Price) : null;

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace KianUSA.Application.Services.UpdateDataByExcel
 {
-    using KianUSA.Application.Entity;
+    using KianUSA.Domain.Entity;
     public class UpdateGroupByExcelService
     {
         public async Task Update(Stream stream)

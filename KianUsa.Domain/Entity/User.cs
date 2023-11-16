@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace KianUSA.Application.Entity
+namespace KianUSA.Domain.Entity
 {
     public class User
     {

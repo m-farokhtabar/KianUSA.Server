@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace KianUSA.Application.Services.Helper.Products
 {
-    using KianUSA.Application.Entity;
+    using KianUSA.Domain.Entity;
     public class InventoryManager
     {
 

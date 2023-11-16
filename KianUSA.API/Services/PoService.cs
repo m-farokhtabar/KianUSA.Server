@@ -1,7 +1,7 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using KianUSA.API.Helper;
-using KianUSA.Application.Entity;
+using KianUSA.Domain.Entity;
 using KianUSA.Application.SeedWork;
 using KianUSA.Application.Services.PoData;
 using Microsoft.AspNetCore.Authorization;
@@ -53,7 +53,7 @@ namespace KianUSA.API.Services
             {
                 if (request is not null && request.Data?.Count > 0)
                 {
-                    List<Application.Entity.PoData> entities = new();
+                    List<Domain.Entity.PoData> entities = new();
                     foreach (var data in request.Data)
                         entities.Add(MapToPoDataEntity(data));
 
@@ -94,11 +94,11 @@ namespace KianUSA.API.Services
             }
             return result;
         }
-        private Application.Entity.PoData MapToPoDataEntity(PoDataSave data)
+        private Domain.Entity.PoData MapToPoDataEntity(PoDataSave data)
         {
             try
             {
-                return new Application.Entity.PoData()
+                return new Domain.Entity.PoData()
                 {
                     PoNumber = data.PONumber,
                     FactoryStatus = (FactoryStatus?)data.FactoryStatus,

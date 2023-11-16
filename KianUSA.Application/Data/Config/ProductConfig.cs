@@ -1,4 +1,4 @@
-﻿using KianUSA.Application.Entity;
+﻿using KianUSA.Domain.Entity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

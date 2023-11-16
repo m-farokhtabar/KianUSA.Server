@@ -1,4 +1,4 @@
-﻿using KianUSA.Application.Entity;
+﻿using KianUSA.Domain.Entity;
 using System;
 
 namespace KianUSA.Application.Services.PoData

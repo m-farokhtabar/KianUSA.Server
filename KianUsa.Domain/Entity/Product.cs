@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace KianUSA.Application.Entity
+namespace KianUSA.Domain.Entity
 {
     public class Product
     {

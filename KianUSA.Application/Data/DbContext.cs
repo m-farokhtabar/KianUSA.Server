@@ -1,5 +1,5 @@
 ﻿using KianUSA.Application.Data.Config;
-using KianUSA.Application.Entity;
+using KianUSA.Domain.Entity;
 using Microsoft.EntityFrameworkCore;
 using System.Configuration;
 

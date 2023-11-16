@@ -1,5 +1,5 @@
 ﻿using ExcelDataReader;
-using KianUSA.Application.Entity;
+using KianUSA.Domain.Entity;
 using KianUSA.Application.Services.Helper;
 using System;
 using System.Collections.Generic;

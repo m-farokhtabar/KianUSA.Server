@@ -1,5 +1,5 @@
 ﻿using KianUSA.Application.Data;
-using KianUSA.Application.Entity;
+using KianUSA.Domain.Entity;
 using KianUSA.Application.Services.Helper;
 using KianUSA.Application.Services.UpdateDataByExcel.Helper;
 using Microsoft.EntityFrameworkCore;

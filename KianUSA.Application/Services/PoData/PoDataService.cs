@@ -1,5 +1,5 @@
 ﻿using KianUSA.Application.Data;
-using KianUSA.Application.Entity;
+using KianUSA.Domain.Entity;
 using KianUSA.Application.SeedWork;
 using KianUSA.Application.Services.Account;
 using KianUSA.Application.Services.UpdateDataByExcel.Helper;
@@ -210,7 +210,7 @@ namespace KianUSA.Application.Services.PoData
             pOData.Data = pOData.Data?.Where(x => x.BillDate is null).ToList();
 
         }
-        public async Task<PoSaveDataResultDto> SaveData(List<Entity.PoData> data)
+        public async Task<PoSaveDataResultDto> SaveData(List<Domain.Entity.PoData> data)
         {
             PoSaveDataResultDto result = null;
             //List<(string poNumber, string role)> PoNumbers = new();

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KianUSA.Application.Entity
+namespace KianUSA.Domain.Entity
 {
     public class Group
     {

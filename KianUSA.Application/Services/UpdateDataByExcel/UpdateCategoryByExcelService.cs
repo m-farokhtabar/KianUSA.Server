@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace KianUSA.Application.Services.UpdateDataByExcel
 {
-    using KianUSA.Application.Entity;
+    using KianUSA.Domain.Entity;
     using System.Data;
     using System.Linq;
     using System.Text.RegularExpressions;

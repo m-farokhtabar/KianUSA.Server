@@ -10,15 +10,14 @@ using KianUSA.Application.SeedWork;
 
 namespace KianUSA.Application.Services.Product
 {
-    using KianUSA.Application.Entity;
+    using KianUSA.Domain.Entity;
     using KianUSA.Application.Services.Category;
     using Microsoft.Extensions.Logging;
     using System.Collections.Concurrent;
 
     public class ProductService
     {
-        private readonly IApplicationSettings appSettings;
-        private readonly ILogger logger;
+        private readonly IApplicationSettings appSettings;        
         private readonly List<string> userRoles;
         public ProductService(IApplicationSettings appSettings, List<string> userRoles)
         {

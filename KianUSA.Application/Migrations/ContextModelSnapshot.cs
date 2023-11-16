@@ -19,7 +19,7 @@ namespace KianUSA.Application.Migrations
                 .HasAnnotation("ProductVersion", "5.0.16")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-            modelBuilder.Entity("KianUSA.Application.Entity.Category", b =>
+            modelBuilder.Entity("KianUSA.Domain.Entity.Category", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -73,7 +73,7 @@ namespace KianUSA.Application.Migrations
                     b.ToTable("Category");
                 });
 
-            modelBuilder.Entity("KianUSA.Application.Entity.CategoryCategory", b =>
+            modelBuilder.Entity("KianUSA.Domain.Entity.CategoryCategory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -110,7 +110,7 @@ namespace KianUSA.Application.Migrations
                     b.ToTable("CategoryCategory");
                 });
 
-            modelBuilder.Entity("KianUSA.Application.Entity.CategoryProduct", b =>
+            modelBuilder.Entity("KianUSA.Domain.Entity.CategoryProduct", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -137,7 +137,7 @@ namespace KianUSA.Application.Migrations
                     b.ToTable("CategoryProduct");
                 });
 
-            modelBuilder.Entity("KianUSA.Application.Entity.Filter", b =>
+            modelBuilder.Entity("KianUSA.Domain.Entity.Filter", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -170,7 +170,7 @@ namespace KianUSA.Application.Migrations
                     b.ToTable("Filter");
                 });
 
-            modelBuilder.Entity("KianUSA.Application.Entity.Group", b =>
+            modelBuilder.Entity("KianUSA.Domain.Entity.Group", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -199,7 +199,7 @@ namespace KianUSA.Application.Migrations
                     b.ToTable("Group");
                 });
 
-            modelBuilder.Entity("KianUSA.Application.Entity.PoData", b =>
+            modelBuilder.Entity("KianUSA.Domain.Entity.PoData", b =>
                 {
                     b.Property<string>("PoNumber")
                         .HasMaxLength(10)
@@ -265,7 +265,7 @@ namespace KianUSA.Application.Migrations
                     b.ToTable("PoData");
                 });
 
-            modelBuilder.Entity("KianUSA.Application.Entity.Product", b =>
+            modelBuilder.Entity("KianUSA.Domain.Entity.Product", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -373,7 +373,7 @@ namespace KianUSA.Application.Migrations
                     b.ToTable("Product");
                 });
 
-            modelBuilder.Entity("KianUSA.Application.Entity.Role", b =>
+            modelBuilder.Entity("KianUSA.Domain.Entity.Role", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -398,7 +398,7 @@ namespace KianUSA.Application.Migrations
                     b.ToTable("Role");
                 });
 
-            modelBuilder.Entity("KianUSA.Application.Entity.Setting", b =>
+            modelBuilder.Entity("KianUSA.Domain.Entity.Setting", b =>
                 {
                     b.Property<string>("Key")
                         .HasMaxLength(200)
@@ -413,7 +413,7 @@ namespace KianUSA.Application.Migrations
                     b.ToTable("Setting");
                 });
 
-            modelBuilder.Entity("KianUSA.Application.Entity.User", b =>
+            modelBuilder.Entity("KianUSA.Domain.Entity.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -513,7 +513,7 @@ namespace KianUSA.Application.Migrations
                     b.ToTable("User");
                 });
 
-            modelBuilder.Entity("KianUSA.Application.Entity.UserRole", b =>
+            modelBuilder.Entity("KianUSA.Domain.Entity.UserRole", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -535,62 +535,62 @@ namespace KianUSA.Application.Migrations
                     b.ToTable("UserRole");
                 });
 
-            modelBuilder.Entity("KianUSA.Application.Entity.CategoryCategory", b =>
+            modelBuilder.Entity("KianUSA.Domain.Entity.CategoryCategory", b =>
                 {
-                    b.HasOne("KianUSA.Application.Entity.Category", null)
+                    b.HasOne("KianUSA.Domain.Entity.Category", null)
                         .WithMany("Parents")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("KianUSA.Application.Entity.Category", null)
+                    b.HasOne("KianUSA.Domain.Entity.Category", null)
                         .WithMany()
                         .HasForeignKey("ParentCategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("KianUSA.Application.Entity.CategoryProduct", b =>
+            modelBuilder.Entity("KianUSA.Domain.Entity.CategoryProduct", b =>
                 {
-                    b.HasOne("KianUSA.Application.Entity.Category", null)
+                    b.HasOne("KianUSA.Domain.Entity.Category", null)
                         .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("KianUSA.Application.Entity.Product", null)
+                    b.HasOne("KianUSA.Domain.Entity.Product", null)
                         .WithMany("Categories")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("KianUSA.Application.Entity.UserRole", b =>
+            modelBuilder.Entity("KianUSA.Domain.Entity.UserRole", b =>
                 {
-                    b.HasOne("KianUSA.Application.Entity.Role", null)
+                    b.HasOne("KianUSA.Domain.Entity.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("KianUSA.Application.Entity.User", null)
+                    b.HasOne("KianUSA.Domain.Entity.User", null)
                         .WithMany("Roles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("KianUSA.Application.Entity.Category", b =>
+            modelBuilder.Entity("KianUSA.Domain.Entity.Category", b =>
                 {
                     b.Navigation("Parents");
                 });
 
-            modelBuilder.Entity("KianUSA.Application.Entity.Product", b =>
+            modelBuilder.Entity("KianUSA.Domain.Entity.Product", b =>
                 {
                     b.Navigation("Categories");
                 });
 
-            modelBuilder.Entity("KianUSA.Application.Entity.User", b =>
+            modelBuilder.Entity("KianUSA.Domain.Entity.User", b =>
                 {
                     b.Navigation("Roles");
                 });

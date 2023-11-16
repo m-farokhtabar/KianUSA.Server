@@ -10,7 +10,7 @@ using KianUSA.Application.Services.Helper;
 
 namespace KianUSA.Application.Services.Category
 {
-    using KianUSA.Application.Entity;
+    using KianUSA.Domain.Entity;
     using KianUSA.Application.Services.Account;
     using System.Collections.Concurrent;
 

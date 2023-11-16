@@ -43,8 +43,8 @@ namespace KianUSA.Application.Services.Order
                     }).ToList();
 
                     //var PrSrv = new ProductService(appSettings);
-                    List<Entity.Product> Products = null;
-                    List<Entity.Product> SelectedProducts = null;
+                    List<Domain.Entity.Product> Products = null;
+                    List<Domain.Entity.Product> SelectedProducts = null;
                     using var Db = new Context();
                     Products = await Db.Products.Include(x=>x.Categories).ToListAsync().ConfigureAwait(false);
                     Products = await ProductService.RemoveProductsWithoutPermissionsFromLists(Products, appSettings, userRoles);
@@ -80,7 +80,7 @@ namespace KianUSA.Application.Services.Order
                 throw new System.Exception("There are not any orders. Please select your items");
 
         }
-        private void OrdersComplexItemWithNoPriority(List<Entity.Product> Products, List<Entity.Product> OrderedProducts, List<ProductOrder> OrdersCount)
+        private void OrdersComplexItemWithNoPriority(List<Domain.Entity.Product> Products, List<Domain.Entity.Product> OrderedProducts, List<ProductOrder> OrdersCount)
         {
             var OrderedComplexItemsWithNoPriority = OrderedProducts.Where(x => !string.IsNullOrWhiteSpace(x.ComplexItemPieces) && x.ComplexItemPriority == 0).ToList();
             if (OrderedComplexItemsWithNoPriority?.Count > 0)
@@ -112,7 +112,7 @@ namespace KianUSA.Application.Services.Order
                 }
             }
         }
-        private void OrdersSimpleItem(List<Entity.Product> OrderedProducts, List<ProductOrder> OrdersCount)
+        private void OrdersSimpleItem(List<Domain.Entity.Product> OrderedProducts, List<ProductOrder> OrdersCount)
         {
             var OrderedSimpleItems = OrderedProducts.Where(x => string.IsNullOrWhiteSpace(x.ComplexItemPieces)).ToList();
             if (OrderedSimpleItems?.Count > 0)
@@ -126,7 +126,7 @@ namespace KianUSA.Application.Services.Order
                 }
             }
         }
-        private void OrdersComplexItem(List<Entity.Product> Products, List<Entity.Product> OrderedProducts, List<ProductOrder> OrdersCount)
+        private void OrdersComplexItem(List<Domain.Entity.Product> Products, List<Domain.Entity.Product> OrderedProducts, List<ProductOrder> OrdersCount)
         {
             var OrderedComplexItems = OrderedProducts.Where(x => !string.IsNullOrWhiteSpace(x.ComplexItemPieces) && x.ComplexItemPriority > 0).ToList();
             if (OrderedComplexItems?.Count > 0)
@@ -182,7 +182,7 @@ namespace KianUSA.Application.Services.Order
 
         }
 
-        private void CheckFactoriesIfPriceIsFob(OrderDto Order, List<Entity.Product> SelectedProducts)
+        private void CheckFactoriesIfPriceIsFob(OrderDto Order, List<Domain.Entity.Product> SelectedProducts)
         {
             if (Order.PriceType == PriceType.Fob)
             {
@@ -229,7 +229,7 @@ namespace KianUSA.Application.Services.Order
                     throw new Exception("When price is Fob, All factories of products must be the same.");
             }
         }
-        private void CheckAllProductsHavePrice(OrderDto Order, List<Entity.Product> SelectedProducts)
+        private void CheckAllProductsHavePrice(OrderDto Order, List<Domain.Entity.Product> SelectedProducts)
         {
             string ProductsName = "";
             foreach (var Product in SelectedProducts)
@@ -297,7 +297,7 @@ namespace KianUSA.Application.Services.Order
             }
             else
             {
-                Db.Settings.Add(new Entity.Setting()
+                Db.Settings.Add(new Domain.Entity.Setting()
                 {
                     Key = "InvoiceNumber",
                     Value = "1"

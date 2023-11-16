@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KianUSA.Application.Entity
+namespace KianUSA.Domain.Entity
 {
     public class Page
     {
