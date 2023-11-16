@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace KianUSA.Application.Data.Config
+namespace KianUsa.Application.Data.Config
 {
     public class CategoryProductConfig : IEntityTypeConfiguration<CategoryProduct>
     {

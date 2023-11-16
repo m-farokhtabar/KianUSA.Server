@@ -1,7 +1,6 @@
-﻿using KianUSA.Application.Data.Config;
+﻿using KianUsa.Application.Data.Config;
 using KianUSA.Domain.Entity;
 using Microsoft.EntityFrameworkCore;
-using System.Configuration;
 
 namespace KianUSA.Application.Data
 {

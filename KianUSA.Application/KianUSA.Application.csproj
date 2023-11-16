@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\KianUsa.Domain\KianUsa.Domain.csproj" />
+    <ProjectReference Include="..\KianUsa.Domain\KianUSA.Domain.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,7 +1,7 @@
 ﻿using KianUSA.Domain.Entity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-namespace KianUSA.Application.Data.Config
+namespace KianUsa.Application.Data.Config
 {
     public class CategoryConfig : IEntityTypeConfiguration<Category>
     {

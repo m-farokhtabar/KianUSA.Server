@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KianUSA.Application", "Kian
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KianUSA.Test", "KianUSA.Test\KianUSA.Test.csproj", "{2F1BFDCD-BEAA-478A-81F9-D7C7AAE98726}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KianUsa.Domain", "KianUsa.Domain\KianUsa.Domain.csproj", "{615E767F-E733-4CC6-8BFE-5FBE94B922DC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KianUSA.Domain", "KianUsa.Domain\KianUSA.Domain.csproj", "{615E767F-E733-4CC6-8BFE-5FBE94B922DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
