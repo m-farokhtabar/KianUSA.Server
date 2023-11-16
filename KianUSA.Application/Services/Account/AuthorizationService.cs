@@ -15,7 +15,7 @@ namespace KianUSA.Application.Services.Account
         {
             if (userRoles.Any(x => string.Equals(x, "admin", StringComparison.OrdinalIgnoreCase)))
                 return true;
-
+            //برای  این است که در کل پروژه اگر نقش را مشخص نکنیم یعنی همه می توانند ببیند
             if (string.IsNullOrWhiteSpace(ListOfAcceptedRolesByData))
                 return true;
             else
