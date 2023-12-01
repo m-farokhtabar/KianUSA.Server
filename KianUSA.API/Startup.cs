@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -70,7 +69,7 @@ namespace KianUSA.API
             {
                 Option.EnableDetailedErrors = true;
                 Option.MaxSendMessageSize = 20971520;
-                Option.MaxReceiveMessageSize = 8388608;
+                Option.MaxReceiveMessageSize = 8388608;                
             });
             services.AddCors(o => o.AddPolicy("AllowAll", builder =>
             {

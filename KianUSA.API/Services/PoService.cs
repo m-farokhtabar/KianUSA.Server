@@ -123,9 +123,10 @@ namespace KianUSA.API.Services
                     BillDate = Tools.DateStringToDateTime(data.BillDate)
                 };
             }
-            catch
+            catch(Exception Ex)
             {
-                throw new Exception("Data is not valid!");
+                logger.LogError(Ex, "WOW Data is not valid!", data);
+                throw new Exception("Data is not valid!!");
             }
         }
         private PoData MapToPoData(PoExcelDbDataDto dataDto)
