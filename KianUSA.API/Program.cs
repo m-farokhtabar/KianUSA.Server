@@ -23,7 +23,7 @@ namespace KianUSA.API
         public static IHostBuilder CreateHostBuilder(string[] args) =>
                     Host.CreateDefaultBuilder(args)
                     .UseSerilog((context, services, configuration) =>
-                    { 
+                    {
                         var Connection = context.Configuration.GetConnectionString("Database");
                         IDictionary<string, ColumnWriterBase> columnWriters = new Dictionary<string, ColumnWriterBase>
                             {
@@ -40,10 +40,10 @@ namespace KianUSA.API
                             .ReadFrom.Configuration(context.Configuration)
                             .ReadFrom.Services(services)
                             .Enrich.FromLogContext()
-                            .Enrich.WithExceptionDetails()                            
-                            .WriteTo.Console()                            
-                            .WriteTo.PostgreSQL(Connection, "logs", columnWriters,needAutoCreateTable: true).MinimumLevel.Warning();
-                    })
+                            .Enrich.WithExceptionDetails()
+                            .WriteTo.Console()
+                            .WriteTo.PostgreSQL(Connection, "logs", columnWriters, needAutoCreateTable: true).MinimumLevel.Error();
+                    })                    
 
                 //.ConfigureLogging((context, logging) =>
                 //{

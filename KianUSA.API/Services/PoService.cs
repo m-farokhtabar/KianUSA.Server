@@ -65,6 +65,7 @@ namespace KianUSA.API.Services
             }
             catch(Exception Ex)
             {
+                logger.LogError(Ex,$"ERROR IN: {typeof(PoService).FullName}.{nameof(Save)}");
                 return await Task.FromResult(new PoSaveResponse() { IsError = true, Message = Ex.Message });
             }
         }
@@ -124,9 +125,9 @@ namespace KianUSA.API.Services
                 };
             }
             catch(Exception Ex)
-            {
-                logger.LogError(Ex, "WOW Data is not valid!", data);
-                throw new Exception("Data is not valid!!");
+            {                
+                logger.LogError(Ex, "Data is not valid! data is => {@data}", data);
+                throw new Exception("Data is not valid!", Ex);
             }
         }
         private PoData MapToPoData(PoExcelDbDataDto dataDto)

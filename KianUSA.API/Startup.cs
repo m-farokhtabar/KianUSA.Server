@@ -77,19 +77,19 @@ namespace KianUSA.API
                        .AllowAnyMethod()
                        .AllowAnyHeader()
                        .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
-            }));
+            }));            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider srp)
-        {
+        {            
             ApplicationSettings appSetting = (ApplicationSettings)srp.GetService<IApplicationSettings>();
             appSetting.WwwRootPath = env.WebRootPath;               
 
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-            }
+            }                        
             //app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();

@@ -225,8 +225,10 @@ namespace KianUSA.Application.Services.PoData
                     var row = Tables[0].Rows[i];
                     //دقت من عمدا 
                     //ForwarderName.Apex
+                    //ShippmentStatus.PleaseAccept
                     //که لیست همه رو بده که بتونیم بعدا واکشی کنیم
-                    if (HasUserPermissionToThisRow(row["Rep"].ToString().Trim(), ForwarderName.Apex, row["PO Number"].ToString().Trim(), row["Ship To"].ToString().Trim()))
+                    //و فقط انهایی را بدهد که بر اساس داده های اکسل دسترسی دارد
+                    if (HasUserPermissionToThisRow(row["Rep"].ToString().Trim(), ForwarderName.Apex, row["PO Number"].ToString().Trim(), row["Ship To"].ToString().Trim(), ShippmentStatus.PleaseAccept))
                     {
                         //PoNumbers.Add((row["PO Number"].ToString().Trim().ToLower(), row["Rep"].ToString().Trim()));
                         PoNumbers.Add((row["PO Number"].ToString().Trim().ToLower(), row["Ship To"].ToString().Trim(), row["Rep"].ToString().Trim()));
@@ -256,8 +258,10 @@ namespace KianUSA.Application.Services.PoData
                         {
                             //اگر دسترسی داشته باشد دقت شود در این حالت ما
                             //forawarder 
+                            //ShippmentStatus
                             //نداریم
-                            if (HasUserPermissionToThisRow(PoNumber.Rep, null, PoNumber.PoNumber, PoNumber.ShipTo))
+                            //چون در حال درج هستیم پس قبلا داده ای نداشتیم که بر اساس آن دو پارامتر بالا را بررسی کنیم
+                            if (HasUserPermissionToThisRow(PoNumber.Rep, null, PoNumber.PoNumber, PoNumber.ShipTo, null))
                             {
                                 var currentDate = DateTime.Now;
                                 item.PoNumber = PoNumber.PoNumber;
@@ -342,7 +346,7 @@ namespace KianUSA.Application.Services.PoData
                             //دقت شود باید آخرین وضعیت مربوط به
                             //ForwarderName
                             //را که در زمان خواندن است بررسی کرد نه وضعیت جدیدی که کاربر وارد کرده است
-                            if (HasUserPermissionToThisRow(PoNumber.Rep, dbItem.ForwarderName, PoNumber.PoNumber, PoNumber.ShipTo))
+                            if (HasUserPermissionToThisRow(PoNumber.Rep, dbItem.ForwarderName, PoNumber.PoNumber, PoNumber.ShipTo, dbItem.ShippmentStatus))
                             {
                                 var currentDate = DateTime.Now;
                                 if (ColSecurity.FactoryStatus.Writable)
@@ -471,10 +475,10 @@ namespace KianUSA.Application.Services.PoData
         /// <param name="pOData"></param>
         private void GetRowsWhichHaveBeAccessedByUser(PoDataDto pOData)
         {
-            List<PoExcelDbDataDto> AuthorizedRows = new();
+            List<PoExcelDbDataDto> AuthorizedRows = new();            
             foreach (var data in pOData.Data)
-            {
-                if (HasUserPermissionToThisRow(data.Rep, data.ForwarderName, data.PONumber, data.ShipTo))
+            {                
+                if (HasUserPermissionToThisRow(data.Rep, data.ForwarderName, data.PONumber, data.ShipTo,data.ShippmentStatus))
                     AuthorizedRows.Add(data);
             }
             if (AuthorizedRows.Count > 0)
@@ -482,7 +486,7 @@ namespace KianUSA.Application.Services.PoData
             else
                 pOData.Data = null;
         }
-        private bool HasUserPermissionToThisRow(string Rep, ForwarderName? ForwarderName, string PONumber, string ShipTo)
+        private bool HasUserPermissionToThisRow(string Rep, ForwarderName? ForwarderName, string PONumber, string ShipTo, ShippmentStatus? ShippmentStatus)
         {
             //به دلیل اینکه در زمان چک کردن نقش تابع نقش خالی را مجوز می دهد به همین خاطر یک چیزی داخلش گذاشتم که این حالت پیش نیاد
             string PONumberRole = "[]";
@@ -497,8 +501,15 @@ namespace KianUSA.Application.Services.PoData
             string ShipToRole = "[]";
             if (string.IsNullOrWhiteSpace(ShipTo))
             {
+                ShipToRole = "[";
                 if (ShipTo.StartsWith("KIAN USA", StringComparison.OrdinalIgnoreCase))
-                    ShipToRole = "[\"Harmun_Trucking\",\"KIAN_Employee_WH\"]";
+                    ShipToRole = "\"Harmun_Trucking\",\"KIAN_Employee_WH\"";
+                if (ShipTo.StartsWith("Sacramento WH", StringComparison.OrdinalIgnoreCase) && ShippmentStatus.HasValue && ShippmentStatus == Domain.Entity.ShippmentStatus.PleaseAccept)
+                {
+                    ShipToRole += (ShipToRole == "[") ? "" : ",";
+                    ShipToRole = "\"Check_ETA\"";
+                }
+                ShipToRole += "]";
             }
 
             if (Auth.HasUserPermissionToUseData(Rep) ||
