@@ -499,15 +499,15 @@ namespace KianUSA.Application.Services.PoData
             }
             //به دلیل اینکه در زمان چک کردن نقش تابع نقش خالی را مجوز می دهد به همین خاطر یک چیزی داخلش گذاشتم که این حالت پیش نیاد
             string ShipToRole = "[]";
-            if (string.IsNullOrWhiteSpace(ShipTo))
+            if (!string.IsNullOrWhiteSpace(ShipTo))
             {
                 ShipToRole = "[";
                 if (ShipTo.StartsWith("KIAN USA", StringComparison.OrdinalIgnoreCase))
-                    ShipToRole = "\"Harmun_Trucking\",\"KIAN_Employee_WH\"";
+                    ShipToRole += "\"Harmun_Trucking\",\"KIAN_Employee_WH\"";
                 if (ShipTo.StartsWith("Sacramento WH", StringComparison.OrdinalIgnoreCase) && ShippmentStatus.HasValue && ShippmentStatus == Domain.Entity.ShippmentStatus.PleaseAccept)
                 {
                     ShipToRole += (ShipToRole == "[") ? "" : ",";
-                    ShipToRole = "\"Check_ETA\"";
+                    ShipToRole += "\"Check_ETA\"";
                 }
                 ShipToRole += "]";
             }
