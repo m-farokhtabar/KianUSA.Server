@@ -44,6 +44,9 @@ import "google/protobuf/wrappers.proto";
         string BillDate = 32;
         bool FactoryStatusNeedsToHaveReadyToGO = 33;
     }
+    message PoGetRequest{
+        bool IsArchive=1;
+    }
     message PoResponse{
         repeated PoData ExcelData=1;
         repeated PoColAccess ColumnsHavePermission = 2;
@@ -90,6 +93,6 @@ import "google/protobuf/wrappers.proto";
         bool FactoryStatusNeedsToHaveReadyToGO = 6;
     }
     service PoSrv{
-        rpc Get(google.protobuf.Empty) returns(PoResponse);
+        rpc Get(PoGetRequest) returns(PoResponse);
         rpc Save(PoDataSaveRequest) returns(PoSaveResponse);
     }

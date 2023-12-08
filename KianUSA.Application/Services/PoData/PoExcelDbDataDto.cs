@@ -51,6 +51,9 @@ namespace KianUSA.Application.Services.PoData
         public DateTime? EmptyDate { get; set; }
         public DateTime? GateOut { get; set; }
         //Ap
+        /// <summary>
+        /// در صورتی که این فیلد مقدار داشته باشد یعنی بایگانی
+        /// </summary>
         public DateTime? BillDate { get; set; }
 
         /// <summary>

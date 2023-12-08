@@ -23,11 +23,14 @@ namespace KianUSA.API.Services
             this.logger = logger;
             this.applicationSettings = applicationSettings;
         }
-        public override async Task<PoResponse> Get(Empty request, ServerCallContext context)
+        public override async Task<PoResponse> Get(PoGetRequest request, ServerCallContext context)
         {
             NewService(context);
             (PoDataDto data, PoSecurityData Security) = service.GetDataByExcel();
-            await service.FillDbData(data, Security);
+            if (request.IsArchive)
+                await service.FillOutArchiveDbDataToPoData(data, Security);
+            else
+                await service.FillOutLiveDbDataToPoData(data, Security);
             PoResponse result = new();
             if (data?.Data?.Count > 0)
                 foreach (var item in data.Data)
@@ -35,17 +38,16 @@ namespace KianUSA.API.Services
             if (data?.ColumnsHavePermission?.Count > 0)
             {
                 foreach (var colPer in data.ColumnsHavePermission)
-                {                    
+                {
                     result.ColumnsHavePermission.Add(new PoColAccess()
                     {
                         ColName = colPer.ColName,
                         IsWritable = colPer.Writable
                     });
                 }
-            }                
+            }
             return await Task.FromResult(result);
         }
-
         public override async Task<PoSaveResponse> Save(PoDataSaveRequest request, ServerCallContext context)
         {
             NewService(context);

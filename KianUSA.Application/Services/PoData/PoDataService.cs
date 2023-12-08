@@ -156,11 +156,78 @@ namespace KianUSA.Application.Services.PoData
             }
             return (Result, ColSecurity);
         }
-        public async Task FillDbData(PoDataDto pOData, PoSecurityData ColSecurity)
+        public async Task FillOutLiveDbDataToPoData(PoDataDto pOData, PoSecurityData ColSecurity)
         {
             using var Db = new Context();
             var models = await Db.PoDatas.AsNoTracking().ToListAsync();
+            FillDbColumnsBasedOnPermissions(pOData, models, ColSecurity);
 
+            //if (models?.Count > 0 && pOData.Data?.Count > 0)
+            //{
+            //    foreach (var data in pOData.Data)
+            //    {
+            //        var model = models.FirstOrDefault(x => string.Equals(x.PoNumber, data.PONumber, StringComparison.OrdinalIgnoreCase));
+            //        if (model is not null)
+            //        {
+            //            data.FactoryStatus = ColSecurity.FactoryStatus.HasAccess ? model.FactoryStatus : null;
+            //            data.StatusDate = ColSecurity.StatusDate.HasAccess ? model.StatusDate : null;
+            //            data.FactoryContainerNumber = ColSecurity.FactoryContainerNumber.HasAccess ? model.FactoryContainerNumber : null;
+            //            data.FactoryBookingDate = ColSecurity.FactoryBookingDate.HasAccess ? model.FactoryBookingDate : null;
+            //            data.DocumentsSendOutDate = ColSecurity.DocumentsSendOutDate.HasAccess ? model.DocumentsSendOutDate : null;
+
+
+            //            //فعلا دسترسی ستون رو بهش نمی دیم چو بهش نیاز داریم برای سطح دسترسی سطر ها
+            //            //data.ForwarderName = ColSecurity.ForwarderName.HasAccess ?  model.ForwarderName : null;
+            //            data.ForwarderName = model.ForwarderName;
+            //            data.BookingDate = ColSecurity.BookingDate.HasAccess ? model.BookingDate : null;
+            //            data.Rate = ColSecurity.Rate.HasAccess ? model.Rate : null;
+            //            data.ETD = ColSecurity.ETD.HasAccess ? model.ETD : null;
+            //            data.FactoryStatusNeedsToHaveReadyToGO = data.ETD.HasValue && (data.ETD.Value.Subtract(DateTime.Now).TotalDays <= 14);
+            //            data.ETA = ColSecurity.ETA.HasAccess ? model.ETA : null;
+            //            data.PortOfDischarge = ColSecurity.PortOfDischarge.HasAccess ? model.PortOfDischarge : null;
+            //            data.DischargeStatus = ColSecurity.DischargeStatus.HasAccess ? model.DischargeStatus : null;
+
+            //            data.ShippmentStatus = ColSecurity.ShippmentStatus.HasAccess ? model.ShippmentStatus : null;
+            //            data.ConfirmDate = ColSecurity.ConfirmDate.HasAccess ? model.ConfirmDate : null;
+
+            //            data.GateIn = ColSecurity.GateIn.HasAccess ? model.GateIn : null;
+            //            data.EmptyDate = ColSecurity.EmptyDate.HasAccess ? model.EmptyDate : null;
+            //            data.GateOut = ColSecurity.GateOut.HasAccess ? model.GateOut : null;
+
+            //            data.BillDate = ColSecurity.BillDate.HasAccess ? model.BillDate : null;
+            //        }
+
+            //    }
+            //}
+            GetRowsWhichHaveBeAccessedByUser(pOData);
+            //if (pOData.Data?.Count > 0)
+            //{
+            //    foreach (var data in pOData.Data)
+            //    {
+            //        data.ForwarderName = ColSecurity.ForwarderName.HasAccess ? data.ForwarderName : null;
+            //        data.ShipTo = ColSecurity.ShipTo.HasAccess ? data.ShipTo : null;
+            //    }
+            //}
+            CheckPermissionSomeDataAfterCheckingRowPermissions(pOData, ColSecurity);
+            pOData.Data = pOData.Data?.Where(x => x.BillDate is null).ToList();
+        }
+        public async Task FillOutArchiveDbDataToPoData(PoDataDto pOData, PoSecurityData ColSecurity)
+        {
+            using var Db = new Context();
+            var models = await Db.PoDatas.AsNoTracking().Where(x => x.BillDate != null).ToListAsync();
+            FillDbColumnsBasedOnPermissions(pOData, models, ColSecurity);
+            GetRowsWhichHaveBeAccessedByUser(pOData);
+            CheckPermissionSomeDataAfterCheckingRowPermissions(pOData, ColSecurity);
+            //به این دلیل دوباره این شرط را میزارم که داده های اکسلی که معادلی در پایگاه داده نداشته اند را با این شرط حذف کند
+            pOData.Data = pOData.Data?.Where(x => x.BillDate is not null).ToList();
+            //همه دسترسی های نوشتن را غیر فعال می کنیم تا فقط برای نمایش استفاده شود
+            foreach (var cPer in pOData.ColumnsHavePermission) 
+            {
+                cPer.Writable = false;
+            }
+        }
+        private void FillDbColumnsBasedOnPermissions(PoDataDto pOData, List<Domain.Entity.PoData> models, PoSecurityData ColSecurity)
+        {
             if (models?.Count > 0 && pOData.Data?.Count > 0)
             {
                 foreach (var data in pOData.Data)
@@ -174,7 +241,6 @@ namespace KianUSA.Application.Services.PoData
                         data.FactoryBookingDate = ColSecurity.FactoryBookingDate.HasAccess ? model.FactoryBookingDate : null;
                         data.DocumentsSendOutDate = ColSecurity.DocumentsSendOutDate.HasAccess ? model.DocumentsSendOutDate : null;
 
-
                         //فعلا دسترسی ستون رو بهش نمی دیم چو بهش نیاز داریم برای سطح دسترسی سطر ها
                         //data.ForwarderName = ColSecurity.ForwarderName.HasAccess ?  model.ForwarderName : null;
                         data.ForwarderName = model.ForwarderName;
@@ -186,7 +252,8 @@ namespace KianUSA.Application.Services.PoData
                         data.PortOfDischarge = ColSecurity.PortOfDischarge.HasAccess ? model.PortOfDischarge : null;
                         data.DischargeStatus = ColSecurity.DischargeStatus.HasAccess ? model.DischargeStatus : null;
 
-                        data.ShippmentStatus = ColSecurity.ShippmentStatus.HasAccess ? model.ShippmentStatus : null;
+                        //فعلا دسترسی ستون رو بهش نمی دیم چو بهش نیاز داریم برای سطح دسترسی سطر ها
+                        //data.ShippmentStatus = ColSecurity.ShippmentStatus.HasAccess ? model.ShippmentStatus : null;
                         data.ConfirmDate = ColSecurity.ConfirmDate.HasAccess ? model.ConfirmDate : null;
 
                         data.GateIn = ColSecurity.GateIn.HasAccess ? model.GateIn : null;
@@ -195,21 +262,27 @@ namespace KianUSA.Application.Services.PoData
 
                         data.BillDate = ColSecurity.BillDate.HasAccess ? model.BillDate : null;
                     }
-
                 }
             }
-            GetRowsWhichHaveBeAccessedByUser(pOData);
+        }
+        /// <summary>
+        /// بررسی دسترسی بعضی ستون ها که در مرحله اول نیاز داریم آن را برای دسترسی به سطرها
+        /// </summary>
+        /// <param name="pOData"></param>
+        /// <param name="ColSecurity"></param>
+        private void CheckPermissionSomeDataAfterCheckingRowPermissions(PoDataDto pOData, PoSecurityData ColSecurity)
+        {
             if (pOData.Data?.Count > 0)
             {
                 foreach (var data in pOData.Data)
                 {
                     data.ForwarderName = ColSecurity.ForwarderName.HasAccess ? data.ForwarderName : null;
                     data.ShipTo = ColSecurity.ShipTo.HasAccess ? data.ShipTo : null;
+                    data.ShippmentStatus = ColSecurity.ShippmentStatus.HasAccess ? data.ShippmentStatus : null;
                 }
             }
-            pOData.Data = pOData.Data?.Where(x => x.BillDate is null).ToList();
-
         }
+
         public async Task<PoSaveDataResultDto> SaveData(List<Domain.Entity.PoData> data)
         {
             PoSaveDataResultDto result = null;
