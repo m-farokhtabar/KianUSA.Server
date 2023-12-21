@@ -244,6 +244,7 @@ namespace KianUSA.Application.Services.PoData
                         //فعلا دسترسی ستون رو بهش نمی دیم چو بهش نیاز داریم برای سطح دسترسی سطر ها
                         //data.ForwarderName = ColSecurity.ForwarderName.HasAccess ?  model.ForwarderName : null;
                         data.ForwarderName = model.ForwarderName;
+                        
                         data.BookingDate = ColSecurity.BookingDate.HasAccess ? model.BookingDate : null;
                         data.Rate = ColSecurity.Rate.HasAccess ? model.Rate : null;
                         data.ETD = ColSecurity.ETD.HasAccess ? model.ETD : null;
@@ -254,6 +255,8 @@ namespace KianUSA.Application.Services.PoData
 
                         //فعلا دسترسی ستون رو بهش نمی دیم چو بهش نیاز داریم برای سطح دسترسی سطر ها
                         //data.ShippmentStatus = ColSecurity.ShippmentStatus.HasAccess ? model.ShippmentStatus : null;
+                        data.ShippmentStatus = model.ShippmentStatus;
+
                         data.ConfirmDate = ColSecurity.ConfirmDate.HasAccess ? model.ConfirmDate : null;
 
                         data.GateIn = ColSecurity.GateIn.HasAccess ? model.GateIn : null;
@@ -277,8 +280,8 @@ namespace KianUSA.Application.Services.PoData
                 foreach (var data in pOData.Data)
                 {
                     data.ForwarderName = ColSecurity.ForwarderName.HasAccess ? data.ForwarderName : null;
-                    data.ShipTo = ColSecurity.ShipTo.HasAccess ? data.ShipTo : null;
                     data.ShippmentStatus = ColSecurity.ShippmentStatus.HasAccess ? data.ShippmentStatus : null;
+                    data.ShipTo = ColSecurity.ShipTo.HasAccess ? data.ShipTo : null;
                 }
             }
         }
