@@ -288,6 +288,22 @@ namespace KianUSA.Application.Services.PoData
 
         public async Task<PoSaveDataResultDto> SaveData(List<Domain.Entity.PoData> data)
         {
+
+            foreach (var item in data)
+            {
+                if (item.FactoryStatus.HasValue && item.FactoryStatus == FactoryStatus.None)
+                    item.FactoryStatus = null;
+                
+                if (item.ForwarderName.HasValue && item.ForwarderName == ForwarderName.None)
+                    item.ForwarderName = null;
+
+                if (item.DischargeStatus.HasValue && item.DischargeStatus == DischargeStatus.None)
+                    item.DischargeStatus = null;
+
+                if (item.ShippmentStatus.HasValue && item.ShippmentStatus == ShippmentStatus.None)
+                    item.ShippmentStatus = null;
+            }
+
             PoSaveDataResultDto result = null;
             //List<(string poNumber, string role)> PoNumbers = new();
             List<(string PoNumber, string ShipTo, string Rep)> PoNumbers = new();
@@ -435,6 +451,7 @@ namespace KianUSA.Application.Services.PoData
                                             if (dbItem.FactoryStatus != item.FactoryStatus)
                                             {
                                                 dbItem.StatusDate = currentDate;
+                                                
                                                 if (item.FactoryStatus == FactoryStatus.BookedWithForwarder)
                                                 {
                                                     dbItem.BookingDate = currentDate;

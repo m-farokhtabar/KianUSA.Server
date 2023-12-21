@@ -37,7 +37,8 @@ namespace KianUSA.Domain.Entity
         ReadyToGo,
         WaitingForConfirmation,
         BookedWithForwarder,
-        Canceled
+        Canceled,
+        None = 999999
     }
     public enum ForwarderName
     {
@@ -45,20 +46,23 @@ namespace KianUSA.Domain.Entity
         Hecny,
         Other,
         OEC,
-        Hold
+        Hold,
+        None = 999999
     }
     public enum DischargeStatus
     {
         NotArrived,
         OnVassel,
         ReadyForPickUp,
-        OnHold
+        OnHold,
+        None = 999999
     }
     public enum ShippmentStatus
     {
         PleaseAccept,
         DoNotAccept,
         HoldTheBooking,
-        Change
+        Change,
+        None = 999999
     }
 }
