@@ -17,7 +17,7 @@ namespace KianUSA.Application.Services.PoData
 
         }
 
-        public PoSaveDataOutput(string poNumber, DateTime? confirmDate, DateTime? statusDate, DateTime? bookingDate, string message, bool factoryStatusNeedsToHaveReadyToGO)
+        public PoSaveDataOutput(string poNumber, DateTime? confirmDate, DateTime? statusDate, DateTime? bookingDate, string message, bool factoryStatusNeedsToHaveReadyToGO, double? rate)
         {
             PoNumber = poNumber;
             ConfirmDate = confirmDate;
@@ -25,13 +25,15 @@ namespace KianUSA.Application.Services.PoData
             BookingDate = bookingDate;
             Message = message;
             FactoryStatusNeedsToHaveReadyToGO = factoryStatusNeedsToHaveReadyToGO;
+            Rate = rate;
         }
 
         public string PoNumber { get; set; }
         public DateTime? ConfirmDate { get; set; }
         public DateTime? StatusDate { get; set; }
-        public DateTime? BookingDate { get; set; }
+        public DateTime? BookingDate { get; set; }        
         public bool FactoryStatusNeedsToHaveReadyToGO { get; set; }
+        public double? Rate { get; set; }
 
         public string Message { get; set; }
 

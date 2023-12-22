@@ -91,6 +91,7 @@ import "google/protobuf/wrappers.proto";
         string BookingDate = 4;
         string Message = 5;
         bool FactoryStatusNeedsToHaveReadyToGO = 6;
+        google.protobuf.DoubleValue Rate = 7;
     }
     service PoSrv{
         rpc Get(PoGetRequest) returns(PoResponse);

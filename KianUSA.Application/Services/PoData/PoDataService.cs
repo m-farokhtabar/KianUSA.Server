@@ -429,7 +429,7 @@ namespace KianUSA.Application.Services.PoData
                                 if (!ColSecurity.BillDate.Writable)
                                     item.BillDate = null;
                                 Db.PoDatas.Add(item);
-                                result.Results.Add(new PoSaveDataOutput(item.PoNumber, item.ConfirmDate, item.StatusDate, item.BookingDate, "", FactoryStatusNeedsToHaveReadyToGO));
+                                result.Results.Add(new PoSaveDataOutput(item.PoNumber, item.ConfirmDate, item.StatusDate, item.BookingDate, "", FactoryStatusNeedsToHaveReadyToGO, item.Rate));
                             }
                         }
                         //یعنی رکورد قبلا در پایگاه داده بوده
@@ -503,8 +503,22 @@ namespace KianUSA.Application.Services.PoData
                                     dbItem.ForwarderName = item.ForwarderName;
                                 if (ColSecurity.FactoryBookingDate.Writable)
                                     dbItem.FactoryBookingDate = item.FactoryBookingDate;
-                                if (ColSecurity.Rate.Writable && dbItem.ShippmentStatus != 0)
+
+                                //در صورتی که ریت مجوز نوشتن نداشت و یانکه وضعیت برابر 0 بود و امکان نوشتن مجوز هم نبود و یا اینکه مجوز تغییر وضعیت بود ولی هم در پایگاه داده و داده ارسالی هر دو 0 بود
+                                if (!(
+                                    !ColSecurity.Rate.Writable || 
+                                    (dbItem.ShippmentStatus == 0 && !ColSecurity.ShippmentStatus.Writable) ||
+                                    (dbItem.ShippmentStatus == 0 && item.ShippmentStatus == 0 && ColSecurity.ShippmentStatus.Writable)
+                                    ))
+                                {
                                     dbItem.Rate = item.Rate;
+                                }
+                                    //اگر وضعیت قابل تعییر نیست بر اساس آخرین تغییر ذخیره شده وضعیت را بررسی می کنیم
+                                //if (ColSecurity.Rate.Writable && (dbItem.ShippmentStatus != 0 && !ColSecurity.ShippmentStatus.Writable))
+                                //    dbItem.Rate = item.Rate;
+
+                                //if (ColSecurity.Rate.Writable && (dbItem.ShippmentStatus != 0 && item.ShippmentStatus != 0 && ColSecurity.ShippmentStatus.Writable))
+                                //    dbItem.Rate = item.Rate;
                                 if (ColSecurity.ETD.Writable)
                                 {
                                     dbItem.ETD = item.ETD;
@@ -552,7 +566,7 @@ namespace KianUSA.Application.Services.PoData
                                 if (ColSecurity.BillDate.Writable)
                                     dbItem.BillDate = item.BillDate;
 
-                                result.Results.Add(new PoSaveDataOutput(dbItem.PoNumber, dbItem.ConfirmDate, dbItem.StatusDate, dbItem.BookingDate, Message, FactoryStatusNeedsToHaveReadyToGO));
+                                result.Results.Add(new PoSaveDataOutput(dbItem.PoNumber, dbItem.ConfirmDate, dbItem.StatusDate, dbItem.BookingDate, Message, FactoryStatusNeedsToHaveReadyToGO, dbItem.Rate));
                             }
                         }
                     }

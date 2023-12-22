@@ -90,7 +90,9 @@ namespace KianUSA.API.Services
                             ConfirmDate = Tools.DateTimeToDateString(item.ConfirmDate),
                             PoNumber = item.PoNumber,
                             StatusDate = Tools.DateTimeToDateString(item.StatusDate),
-                            FactoryStatusNeedsToHaveReadyToGO = item.FactoryStatusNeedsToHaveReadyToGO
+                            FactoryStatusNeedsToHaveReadyToGO = item.FactoryStatusNeedsToHaveReadyToGO,
+                            Rate = item.Rate,
+                            Message = item.Message
                         });
                     }
                 }
