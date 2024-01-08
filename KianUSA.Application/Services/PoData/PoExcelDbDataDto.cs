@@ -61,5 +61,6 @@ namespace KianUSA.Application.Services.PoData
         /// لیست نقش های مجاز
         /// </summary>
         public string Rep { get; set; }
+        public string Note {  get; set; }
     }
 }

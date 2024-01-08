@@ -28,6 +28,7 @@ namespace KianUSA.Domain.Entity
         public DateTime? GateOut { get; set; }
         //Ap
         public DateTime? BillDate { get; set; }
+        public string Note { get; set; }
     }
     public enum FactoryStatus
     {

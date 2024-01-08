@@ -125,7 +125,8 @@ namespace KianUSA.API.Services
                     GateIn = Tools.DateStringToDateTime(data.GateIn),
                     EmptyDate = Tools.DateStringToDateTime(data.EmptyDate),
                     GateOut = Tools.DateStringToDateTime(data.GateOut),
-                    BillDate = Tools.DateStringToDateTime(data.BillDate)
+                    BillDate = Tools.DateStringToDateTime(data.BillDate),
+                    Note = data.Note
                 };
             }
             catch(Exception Ex)
@@ -174,7 +175,8 @@ namespace KianUSA.API.Services
                 GateIn = Tools.DateTimeToDateString(dataDto.GateIn),
                 EmptyDate = Tools.DateTimeToDateString(dataDto.EmptyDate),
                 GateOut = Tools.DateTimeToDateString(dataDto.GateOut),
-                BillDate = Tools.DateTimeToDateString(dataDto.BillDate)
+                BillDate = Tools.DateTimeToDateString(dataDto.BillDate),
+                Note = Tools.NullStringToEmpty(dataDto.Note)                
             };
         }
         private void NewService(ServerCallContext context)

@@ -41,8 +41,9 @@ import "google/protobuf/wrappers.proto";
         string GateIn = 29;
         string EmptyDate = 30;
         string GateOut = 31;
-        string BillDate = 32;
+        string BillDate = 32;        
         bool FactoryStatusNeedsToHaveReadyToGO = 33;
+        string Note = 34;
     }
     message PoGetRequest{
         bool IsArchive=1;
@@ -75,9 +76,10 @@ import "google/protobuf/wrappers.proto";
         string EmptyDate = 15;
         string GateOut = 16;
         string BillDate = 17;
+        string Note = 18;
     }
     message PoDataSaveRequest{
-        repeated PoDataSave Data = 1;        
+        repeated PoDataSave Data = 1;
     }
     message PoSaveResponse{
         string Message = 1;

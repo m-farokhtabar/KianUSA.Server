@@ -111,6 +111,8 @@ namespace KianUSA.Application.Services.PoData
                             Result.ColumnsHavePermission.Add(new ColAccess("Gate out", ColSecurity.GateOut.Writable));
                         if (ColSecurity.BillDate.HasAccess)
                             Result.ColumnsHavePermission.Add(new ColAccess("Bill Date", ColSecurity.BillDate.Writable));
+                        if (ColSecurity.Note.HasAccess)
+                            Result.ColumnsHavePermission.Add(new ColAccess("Note", ColSecurity.Note.Writable));
                     }
                     for (int i = 0; i < Tables[0].Rows.Count; i++)
                     {
@@ -264,6 +266,7 @@ namespace KianUSA.Application.Services.PoData
                         data.GateOut = ColSecurity.GateOut.HasAccess ? model.GateOut : null;
 
                         data.BillDate = ColSecurity.BillDate.HasAccess ? model.BillDate : null;
+                        data.Note = ColSecurity.Note.HasAccess ? model.Note : null;
                     }
                 }
             }
@@ -428,6 +431,8 @@ namespace KianUSA.Application.Services.PoData
                                     item.GateOut = null;
                                 if (!ColSecurity.BillDate.Writable)
                                     item.BillDate = null;
+                                if (!ColSecurity.Note.Writable)
+                                    item.Note = null;
                                 Db.PoDatas.Add(item);
                                 result.Results.Add(new PoSaveDataOutput(item.PoNumber, item.ConfirmDate, item.StatusDate, item.BookingDate, "", FactoryStatusNeedsToHaveReadyToGO, item.Rate));
                             }
@@ -565,6 +570,8 @@ namespace KianUSA.Application.Services.PoData
                                     dbItem.GateOut = item.GateOut;
                                 if (ColSecurity.BillDate.Writable)
                                     dbItem.BillDate = item.BillDate;
+                                if (ColSecurity.Note.Writable)
+                                    dbItem.Note = item.Note;
 
                                 result.Results.Add(new PoSaveDataOutput(dbItem.PoNumber, dbItem.ConfirmDate, dbItem.StatusDate, dbItem.BookingDate, Message, FactoryStatusNeedsToHaveReadyToGO, dbItem.Rate));
                             }
@@ -680,7 +687,8 @@ namespace KianUSA.Application.Services.PoData
                     GateIn = new ColPermission(row["Gate In"].ToString().Trim(), writePermissionRow["Gate In"].ToString().Trim(), Auth),
                     EmptyDate = new ColPermission(row["Empty Date"].ToString().Trim(), writePermissionRow["Empty Date"].ToString().Trim(), Auth),
                     GateOut = new ColPermission(row["Gate out"].ToString().Trim(), writePermissionRow["Gate out"].ToString().Trim(), Auth),
-                    BillDate = new ColPermission(row["Bill Date"].ToString().Trim(), writePermissionRow["Bill Date"].ToString().Trim(), Auth)
+                    BillDate = new ColPermission(row["Bill Date"].ToString().Trim(), writePermissionRow["Bill Date"].ToString().Trim(), Auth),
+                    Note = new ColPermission(row["Note"].ToString().Trim(), writePermissionRow["Note"].ToString().Trim(), Auth)
                 };
             }
 

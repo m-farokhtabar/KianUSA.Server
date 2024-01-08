@@ -32,6 +32,7 @@ namespace KianUsa.Application.Data.Config
             builder.Property(x => x.EmptyDate).IsRequired(false);
             builder.Property(x => x.GateOut).IsRequired(false);
             builder.Property(x => x.BillDate).IsRequired(false);
+            builder.Property(x => x.Note).IsRequired(false);
         }
     }
 }

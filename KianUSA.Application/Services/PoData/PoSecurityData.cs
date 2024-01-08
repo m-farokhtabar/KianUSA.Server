@@ -42,6 +42,8 @@ namespace KianUSA.Application.Services.PoData
         public ColPermission GateOut { get; set; }
         //Ap
         public ColPermission BillDate { get; set; }
+
+        public ColPermission Note { get; set; }
     }
     public class ColPermission
     {
