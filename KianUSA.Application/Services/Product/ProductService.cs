@@ -250,7 +250,8 @@ namespace KianUSA.Application.Services.Product
                 ComplexItemPriority = Model.ComplexItemPriority,
                 PiecesCount = Model.PiecesCount,
                 Features = !string.IsNullOrWhiteSpace(Model.Features) ? System.Text.Json.JsonSerializer.Deserialize<List<KeyValueDto>>(Model.Features) : null,
-                PricePermissions = !string.IsNullOrWhiteSpace(Model.PricePermissions) ? System.Text.Json.JsonSerializer.Deserialize<List<KeyValueDto>>(Model.PricePermissions) : null
+                PricePermissions = !string.IsNullOrWhiteSpace(Model.PricePermissions) ? System.Text.Json.JsonSerializer.Deserialize<List<KeyValueDto>>(Model.PricePermissions) : null,
+                IsSample = Model.IsSample
             };
             if (!IgnorePermission)
                 RemoveProductPricesWhichDoNotHavePermissions(data);
@@ -303,7 +304,8 @@ namespace KianUSA.Application.Services.Product
                 ComplexItemPriority = Model.ComplexItemPriority,
                 PiecesCount = Model.PiecesCount,
                 Features = !string.IsNullOrWhiteSpace(Model.Features) ? System.Text.Json.JsonSerializer.Deserialize<List<KeyValueDto>>(Model.Features) : null,
-                PricePermissions = !string.IsNullOrWhiteSpace(Model.PricePermissions) ? System.Text.Json.JsonSerializer.Deserialize<List<KeyValueDto>>(Model.PricePermissions) : null
+                PricePermissions = !string.IsNullOrWhiteSpace(Model.PricePermissions) ? System.Text.Json.JsonSerializer.Deserialize<List<KeyValueDto>>(Model.PricePermissions) : null,
+                IsSample = Model.IsSample
             };
             if (IgnorePermission == false)
                 RemoveProductPricesWhichDoNotHavePermissions(data);

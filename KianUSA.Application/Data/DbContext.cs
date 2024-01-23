@@ -16,6 +16,7 @@ namespace KianUSA.Application.Data
         public DbSet<Filter> Filters { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<PoData> PoDatas { get; set; }
+        public DbSet<Tutorial> Tutorials { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

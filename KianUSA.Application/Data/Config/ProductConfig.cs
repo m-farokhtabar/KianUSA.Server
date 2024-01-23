@@ -39,12 +39,14 @@ namespace KianUsa.Application.Data.Config
             builder.Property(x => x.ComplexItemPieces).IsRequired(false);
             builder.Property(x => x.ComplexItemPriority).IsRequired();
             builder.Property(x => x.PiecesCount).IsRequired();
+            builder.Property(x => x.IsSample).IsRequired(false).HasMaxLength(200);
 
             builder.Property(x => x.Features).IsRequired(false);
             builder.Property(x => x.PricePermissions).IsRequired(false);
 
             builder.HasIndex(x => x.Slug).IsUnique();
             builder.HasIndex(x => x.Order);
+            
         }
     }
 }

@@ -38,6 +38,7 @@ import "google/protobuf/wrappers.proto";
         string ProductDescription = 28;
         repeated KeyValue Features = 29;
         repeated KeyValue PricePermissions = 30;
+        string IsSample = 31;
     }
     message ProductPriceResponseMessage
     {

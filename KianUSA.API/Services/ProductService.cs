@@ -121,7 +121,8 @@ namespace KianUSA.API.Services
                 Weight = product.Weight,
                 WHQTY = product.WHQTY,
                 PiecesCount = product.PiecesCount,
-                ComplexItemPriority = product.ComplexItemPriority                
+                ComplexItemPriority = product.ComplexItemPriority,
+                IsSample = Tools.NullStringToEmpty(product.IsSample)
             };
             if (product.CategoryIds?.Count > 0)
                 Message.CategoryIds.AddRange(product.CategoryIds.ConvertAll(x => x.ToString()));

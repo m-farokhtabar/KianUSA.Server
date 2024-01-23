@@ -84,7 +84,8 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                 ComplexItemPieces = UpdateByExcelHelper.ConvertStringWithbracketsToJsonArrayString(Row["Peace of Complex Item"].ToString().Trim()),
                 ComplexItemPriority = UpdateByExcelHelper.GetInt32WithDefaultZero(Row["Complex Item Priority"]),
                 Features = UpdateByExcelHelper.CreateJsonKeyValue(Tables[0].Columns, Row, "Feature"),
-                PricePermissions = UpdateByExcelHelper.CreateJsonKeyValue(Tables[0].Columns, Row, "Permission Price")
+                PricePermissions = UpdateByExcelHelper.CreateJsonKeyValue(Tables[0].Columns, Row, "Permission Price"),
+                IsSample = Row["Is Sample"].ToString().Trim(),
             };
         }
 

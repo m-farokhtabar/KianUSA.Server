@@ -14,6 +14,9 @@ namespace KianUSA.Application.Services.Order
         public string ConfirmedBy { get; set; }
         public string PoNumber { get; set; }
         public string Description { get; set; }
+        public string MarketSpecial { get; set; }
+        public int? CountOfCustomerShareAContainer  { get; set; }
+        public bool  AddDiscountToSample { get; set; }
     }
 
     public class ProductOrder
@@ -26,7 +29,9 @@ namespace KianUSA.Application.Services.Order
     {
         Fob,
         Sac,
-        LandedPrice
+        //Mix Container
+        LandedPrice,
+        Sample
     }
     public enum DeliveryType
     {

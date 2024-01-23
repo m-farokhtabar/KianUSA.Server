@@ -58,6 +58,10 @@ namespace KianUSA.Application.Services.Product
 
         public List<KeyValueDto> Features { get; set; }
         public List<KeyValueDto> PricePermissions { get; set; }
+        /// <summary>
+        /// برای سفارش نوع چعارم استفاده می شود  و در صورتی 1 باشد یعنی اجازه سفارش دارد 
+        /// </summary>
+        public string IsSample { get; set; }
     }
     public class ProductPriceDto
     {

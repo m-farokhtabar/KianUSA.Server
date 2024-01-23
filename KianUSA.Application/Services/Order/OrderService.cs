@@ -3,8 +3,10 @@ using KianUSA.Application.Data;
 using KianUSA.Application.SeedWork;
 using KianUSA.Application.Services.Account;
 using KianUSA.Application.Services.Email;
+using KianUSA.Application.Services.Helper;
 using KianUSA.Application.Services.Helper.Products;
 using KianUSA.Application.Services.Product;
+using KianUSA.Domain.Entity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -26,6 +28,7 @@ namespace KianUSA.Application.Services.Order
         }
         public async Task SaveOrder(OrderDto Order, string UserEmail, string UserFullName)
         {
+            //:TODO Check User role for User request Which has access to the price sample for order or not
             IsValidPriceType(Order);
 
             DateTime Current = DateTime.Now;
@@ -54,7 +57,10 @@ namespace KianUSA.Application.Services.Order
                     {
                         CheckAllProductsHavePrice(Order, SelectedProducts);
                         CheckFactoriesIfPriceIsFob(Order, SelectedProducts);
-                        if (Order.PriceType != PriceType.Fob)
+                        CheckCategoriesWhichNoMoreThanTwoInFobMode(Order, SelectedProducts);
+                        CheckAllProductsAreSelectedCorrectlyInSampleMode(Order, SelectedProducts);
+                        CheckContainersBasedOnCubeInMixContainer(Order, SelectedProducts);
+                        if (Order.PriceType == PriceType.Sac && Order.PriceType == PriceType.LandedPrice)
                         {
                             //اول محصولات ترکیبی که اولویت صفر دارند
                             OrdersComplexItemWithNoPriority(Products, SelectedProducts, Orders);
@@ -181,7 +187,61 @@ namespace KianUSA.Application.Services.Order
             }
 
         }
+        /// <summary>
+        /// بررسی میزان سفارش که نباید از حد خاصی کمتر باشد در حالت
+        /// Mix Container
+        /// </summary>
+        /// <param name="Order"></param>
+        /// <param name="SelectedProducts"></param>
+        /// <exception cref="Exception"></exception>
+        private void CheckContainersBasedOnCubeInMixContainer(OrderDto Order, List<Domain.Entity.Product> SelectedProducts)
+        {
+            //Mix Container
+            if (Order.PriceType == PriceType.LandedPrice)
+            {
+                double TotalCubes = 0;
+                foreach (var orderItem in Order.Orders)
+                {
+                    var Prd = SelectedProducts.Find(x => x.Slug == orderItem.ProductSlug);
+                    TotalCubes += Prd.Cube.HasValue ? Prd.Cube.Value * orderItem.Count : 0;
+                }
+                TotalCubes = Math.Round(TotalCubes, 2);
+                int MinContainerCapacity = Order.CountOfCustomerShareAContainer.HasValue ? Order.CountOfCustomerShareAContainer.Value : 3200;
+                if (TotalCubes< MinContainerCapacity)
+                    throw new Exception($"The minimum order of 'Mix container landed to Door' container  is {MinContainerCapacity}");
+            }
+        }
 
+        /// <summary>
+        /// برای سفارش نوع چعارم استفاده می شود  و در صورتی 1 باشد یعنی اجازه سفارش دارد 
+        /// </summary>
+        private void CheckAllProductsAreSelectedCorrectlyInSampleMode(OrderDto Order, List<Domain.Entity.Product> SelectedProducts)
+        {
+            if (Order.PriceType == PriceType.Sample)
+            {
+                if (SelectedProducts.Any(x => string.IsNullOrWhiteSpace(x.IsSample) || x.IsSample.Trim() != "1"))
+                    throw new Exception("In Sample, Unfortunately, you cannot order these products.");
+            }
+        }
+
+        private void CheckCategoriesWhichNoMoreThanTwoInFobMode(OrderDto Order, List<Domain.Entity.Product> SelectedProducts)
+        {
+            if (Order.PriceType == PriceType.Fob)
+            {
+                List<Guid> categoriesId = new();
+                foreach (var prd in SelectedProducts)
+                {
+                    foreach (var cat in prd.Categories)
+                    {
+                        if (!categoriesId.Any(x=> x == cat.CategoryId))
+                            categoriesId.Add(cat.CategoryId);
+                    }
+                }
+                if (categoriesId.Count >2)
+                    throw new Exception("In China Price, You cannot add Items from more than two categories.");
+            }
+
+        }
         private void CheckFactoriesIfPriceIsFob(OrderDto Order, List<Domain.Entity.Product> SelectedProducts)
         {
             if (Order.PriceType == PriceType.Fob)

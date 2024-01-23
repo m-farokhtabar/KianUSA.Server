@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 option csharp_namespace = "KianUSA.API.Services";
-
+import "google/protobuf/wrappers.proto";
 enum PriceType {
     Fob = 0;
     Sac = 1;
@@ -30,6 +30,9 @@ message OrderRequestMessage{
         string ConfirmedBy = 7;
         string PoNumber = 8;
         string Description = 9;
+        string MarketSpecial = 10;
+        google.protobuf.Int32Value CountOfCustomerShareAContainer = 11;
+        bool AddDiscountToSample = 12;
 }
 message OrderResponseMessage{
     string Message = 1;

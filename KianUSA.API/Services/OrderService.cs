@@ -51,6 +51,9 @@ namespace KianUSA.API.Services
                 }
                 Order.ConfirmedBy = request.ConfirmedBy;
                 Order.Description = request.Description;
+                Order.MarketSpecial = request.MarketSpecial;
+                Order.CountOfCustomerShareAContainer = request.CountOfCustomerShareAContainer;
+                Order.AddDiscountToSample = request.AddDiscountToSample;
 
                 var Name = context.GetHttpContext().User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.GivenName).Value;
                 var LastName = context.GetHttpContext().User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Surname).Value;

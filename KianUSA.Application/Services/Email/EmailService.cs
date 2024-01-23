@@ -18,7 +18,7 @@ namespace KianUSA.Application.Services.Email
         public EmailService(IApplicationSettings settings)
         {
             this.settings = settings;
-            Provider = new();            
+            Provider = new();
         }
         /// <summary>
         /// 
@@ -117,7 +117,7 @@ namespace KianUSA.Application.Services.Email
                     string Body = Setting.BodyTemplate.Replace("{Name}", Name).Replace("{Family}", Family).Replace("{Phone}", Phone)
                                                       .Replace("{Email}", Email).Replace("{Comment}", Comment)
                                                       .Replace("{CurrentDate}", DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToLongTimeString());
-                    await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, Setting.UserName, Body, null,Setting.Cc,Setting.Bcc);
+                    await Provider.SendMailAsync(Setting, Setting.SubjectTemplate, Setting.UserName, Body, null, Setting.Cc, Setting.Bcc);
 
                 }
                 catch
@@ -144,6 +144,7 @@ namespace KianUSA.Application.Services.Email
             string Rows = "";
             double TotalPieces = 0;
             decimal TotalPrices = 0;
+            decimal totalDiscount = 0;
             double TotalCount = 0;
             double TotalCubes = 0;
             double TotalWeight = 0;
@@ -153,14 +154,21 @@ namespace KianUSA.Application.Services.Email
             foreach (var orderItem in Order.Orders)
             {
                 var Prd = Products.Find(x => x.Slug == orderItem.ProductSlug);
-                decimal Price = GetPrice(Prd, Order.PriceType, Order.Tariff, Order.Cost);
-                decimal TotalPrice = Price * (decimal)orderItem.Count;
+                (decimal finalPrice,decimal firstPrice) = GetPrice(Prd, Order.PriceType, Order.Tariff, Order.Cost, Order.MarketSpecial, Order.AddDiscountToSample);
+                
+                decimal totalFirstPrice = firstPrice * (decimal)orderItem.Count;
+                decimal totalFinalPrice = finalPrice * (decimal)orderItem.Count;
+                
+                string showPrice = Tools.GetPriceFormat(finalPrice);
+                if (finalPrice != firstPrice)
+                    showPrice = "<strong>" + showPrice + "</strong> " + "<s>"+ Tools.GetPriceFormat(firstPrice) + "</s>";
                 Rows += OrderEmailTableBodyTemplate.Replace("{Item Number}", Prd.Name)
-                                                   .Replace("{Qty}", orderItem.Count.ToString())
-                                                   .Replace("{Price}", Tools.GetPriceFormat(Price))
-                                                   .Replace("{Total Price}", Tools.GetPriceFormat(TotalPrice))
+                                                   .Replace("{Qty}", orderItem.Count.ToString())                                                   
+                                                   .Replace("{Price}", showPrice)
+                                                   .Replace("{Total Price}", Tools.GetPriceFormat(totalFinalPrice))
                                                    .Replace("{RowStyle}", GetRowStyle(i, Order.Orders.Count));
-                TotalPrices += TotalPrice;
+                TotalPrices += totalFinalPrice;
+                totalDiscount += (totalFinalPrice - totalFirstPrice);
                 TotalPieces += (Prd.PiecesCount * orderItem.Count);
                 TotalCubes += Prd.Cube.HasValue ? Prd.Cube.Value * orderItem.Count : 0;
                 TotalWeight += Prd.Weight.HasValue ? Prd.Weight.Value * orderItem.Count : 0;
@@ -178,6 +186,7 @@ namespace KianUSA.Application.Services.Email
                                    .Replace("{RowStyle}", GetRowStyle(i, Order.Orders.Count));
 
             OrderEmailTemplate = OrderEmailTemplate.Replace("{OrderTableBody}", Rows)
+                                                    .Replace("{TotalDiscount}", Tools.GetPriceFormat(totalDiscount))
                                                     .Replace("{TotalPricesBelow}", Tools.GetPriceFormat(TotalPrices))
                                                     .Replace("{TotalPieces}", TotalPieces.ToString())
                                                     .Replace("{TotalCubes}", TotalCubes.ToString())
@@ -207,27 +216,73 @@ namespace KianUSA.Application.Services.Email
             else
                 throw new Exception("Email setting is not valid.");
         }
-        private decimal GetPrice(Domain.Entity.Product Model, PriceType Type, TariffType Tariff, double Cost)
+        private (decimal finalPrice,decimal firstPrice) GetPrice(Domain.Entity.Product Model, PriceType Type, TariffType Tariff, double Cost, string MarketSpecial, bool AddDiscountToSample)
         {
-            decimal Result = 0;
+            decimal firstPrice = 0;
+            decimal finalPrice = 0;            
             List<ProductPriceDto> Prices = !string.IsNullOrWhiteSpace(Model.Price) ? System.Text.Json.JsonSerializer.Deserialize<List<ProductPriceDto>>(Model.Price) : null;
             switch (Type)
             {
-                case PriceType.Fob:
+                //تخفیف نمایش داده نشود
+                case PriceType.Fob:                    
                     if (Tariff == TariffType.IORCustomer && Type == PriceType.Fob)
-                        Result = Prices[0].Value.HasValue ? Prices[0].Value.Value - ((Prices[0].Value.Value * 20) / 100) : 0;
+                        finalPrice = Prices[0].Value.HasValue ? Prices[0].Value.Value - ((Prices[0].Value.Value * 20) / 100) : 0;
                     else
-                        Result = Prices[0].Value.HasValue ? Prices[0].Value.Value : 0;
+                        finalPrice = Prices[0].Value.HasValue ? Prices[0].Value.Value : 0;
+                    firstPrice = finalPrice;
                     break;
                 case PriceType.Sac:
-                    Result = Prices[2].Value.HasValue && Prices[2].Value.Value > 0 ? Prices[2].Value.Value : (Prices[1].Value ?? 0);
+                    if (Prices[1].Value.HasValue)
+                        firstPrice = Prices[1].Value.Value;
+
+                    if (Prices[2].Value.HasValue && Prices[2].Value.Value > 0)
+                        finalPrice = Prices[2].Value.Value;
+                    else
+                    {
+                        if (Prices[1].Value.HasValue && Prices[1].Value.Value > 0)
+                        {
+                            if (!string.IsNullOrWhiteSpace(MarketSpecial))
+                            {
+                                if (MarketSpecial == "1")
+                                    finalPrice = Prices[1].Value.Value - ((Prices[1].Value.Value * 5) / 100);
+                                else if (MarketSpecial == "2")
+                                    finalPrice = Prices[1].Value.Value - ((Prices[1].Value.Value * 10) / 100);
+                                else
+                                    finalPrice = Prices[1].Value.Value;
+                            }
+                            else
+                                finalPrice = Prices[1].Value.Value;
+                        }
+                    }                    
                     break;
+                //تخفیف نمایش داده شود
                 case PriceType.LandedPrice:
                     if (Cost > 0 && Model.Cube.HasValue && Model.Cube > 0)
-                        return Prices[0].Value.Value + (decimal)(Model.Cube.Value * (Cost / 2350));
+                    {
+                        finalPrice= Prices[0].Value.Value + (decimal)(Model.Cube.Value * (Cost / 2350));
+                        firstPrice = finalPrice;                        
+                    }
+                    break;
+                //تخفیف نمایش داده شود
+                case PriceType.Sample:
+                    if (Prices[1].Value.HasValue)
+                        firstPrice = Prices[1].Value.Value;
+
+                    if (Prices[2].Value.HasValue && Prices[2].Value.Value > 0)
+                        finalPrice = Prices[2].Value.Value;
+                    else
+                    {
+                        if (Prices[1].Value.HasValue && Prices[1].Value.Value > 0)
+                        {
+                            if (AddDiscountToSample)
+                                finalPrice = Prices[1].Value.Value - ((Prices[1].Value.Value * 10) / 100);
+                            else
+                                finalPrice = Prices[1].Value.Value;
+                        }
+                    }                    
                     break;
             }
-            return Result;
+            return (finalPrice, firstPrice);
         }
         private string GetRowStyle(int i, int OrdersCount)
         {
