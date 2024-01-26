@@ -8,5 +8,6 @@ namespace KianUSA.Application.Services.Account
         public string Name { get; set; }
         public string Family { get; set; }
         public string UserName { get; set; }
+        public string StoreName { get; set; }
     }
 }

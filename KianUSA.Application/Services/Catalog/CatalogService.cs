@@ -96,7 +96,7 @@ namespace KianUSA.Application.Services.Catalog
                         activeProducts.Add(prd);
                 }
 
-                return await CreateOnePdfBasedOnProducts(Prices?.ToArray(), activeProducts, Categories, LandedPrice);
+                return await CreateOnePdfBasedOnProducts(Prices?.ToArray(), activeProducts, Categories, LandedPrice, (CategoriesSlug?.Count > 0));
             }
             else
                 throw new Exception("There are not any products.");
@@ -240,8 +240,16 @@ namespace KianUSA.Application.Services.Catalog
             });
 
         }
-
-        private async Task<(string RelativePath, string ServerPath)> CreateOnePdfBasedOnProducts(int[] PriceRange, List<ProductWithSlugCatDto> Products, List<CategoryDto> Categories, double Cost = 0, string CategorySlug = "")
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="PriceRange"></param>
+        /// <param name="Products"></param>
+        /// <param name="Categories"></param>
+        /// <param name="Cost"></param>
+        /// <param name="IsSingular">به معنی این است که چند یا یک کاتالوگ به صورت تکی جهت ایجاد چی دی اف انتخاب شده است</param>
+        /// <returns></returns>
+        private async Task<(string RelativePath, string ServerPath)> CreateOnePdfBasedOnProducts(int[] PriceRange, List<ProductWithSlugCatDto> Products, List<CategoryDto> Categories, double Cost, bool IsSingular)
         {            
             string RelativePath = null;
             string PhysicalServerPath = null; 
@@ -311,21 +319,14 @@ namespace KianUSA.Application.Services.Catalog
                         Body = Body.Replace("{DetailsTable}", CreateDetailsTable(Category, TemplateCatalogDetailsTable, TemplateCatalogDetailsTableRow));
                         Body = Body.Replace("{FeaturesTable}", CreateFeaturesTable(Category, TemplateCatalogFeaturesTable, TemplateCatalogFeaturesTableRow));
                         Body = Body.Replace("{MeasureTable}", CreateMeasureTable(Category, Products, TemplateCatalogMeasureTable, TemplateCatalogMeasureTableRow, TemplateCatalogMeasureTablePriceHeader, TemplateCatalogMeasureTablePriceCellValue, PriceRange, Cost));
-                        if (Category.PublishedCatalogType == PublishedCatalogTypeDto.Main || Category.PublishedCatalogType == PublishedCatalogTypeDto.SingleAndMain)
+                        if (Category.PublishedCatalogType == PublishedCatalogTypeDto.Main || Category.PublishedCatalogType == PublishedCatalogTypeDto.SingleAndMain ||
+                            (IsSingular && Category.PublishedCatalogType == PublishedCatalogTypeDto.Single))
                         {
                             Catalogs.Add((Category.Order, Body, Category.Name));
                         }
                         Body = Body.Replace("{PageNumber}", "1");
                         Body = Body.Replace("{DateTime}", CurrentDateTime);
                         Body = Body.Replace("{CategoryName}", Category.Name);
-                        if (Category.PublishedCatalogType != PublishedCatalogTypeDto.Main)
-                        {
-                            if (Cost == 0 || (Cost > 0 && string.Equals(Category.Slug, CategorySlug, StringComparison.InvariantCultureIgnoreCase)))
-                            {
-                                //using FileStream pdfDest = File.Open($"{CatalogsPath}{PriceTypeDirectory}{Category.Slug}{PriceType}{LandedPrice}.pdf", FileMode.Create);
-                                //HtmlConverter.ConvertToPdf(TemplateCatalog.Replace("{Style}", Style).Replace("{Body}", TemplateFirstPage + Body), pdfDest);
-                            }
-                        }
                     }
                 });
 

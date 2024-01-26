@@ -206,7 +206,7 @@ namespace KianUSA.Application.Services.Order
                     TotalCubes += Prd.Cube.HasValue ? Prd.Cube.Value * orderItem.Count : 0;
                 }
                 TotalCubes = Math.Round(TotalCubes, 2);
-                int MinContainerCapacity = Order.CountOfCustomerShareAContainer.HasValue ? Order.CountOfCustomerShareAContainer.Value : 3200;
+                int MinContainerCapacity = Order.CountOfCustomerShareAContainer.HasValue ? Order.CountOfCustomerShareAContainer.Value : 3400;
                 if (TotalCubes< MinContainerCapacity)
                     throw new Exception($"The minimum order of 'Mix container landed to Door' container  is {MinContainerCapacity}");
             }

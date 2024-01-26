@@ -34,6 +34,7 @@ namespace KianUSA.Application.Services.Account
                 Email = User.Email,
                 Name = User.Name,
                 LastName = User.LastName,
+                StoreName = User.StoreName,
                 Roles = Roles.Select(x => x.Name).ToList(),
                 Pages = Roles.Select(x => x.Pages)?.Distinct().ToList(),
                 Buttons = GetButtons(Roles.Select(x => x.Buttons)?.Distinct().ToList())?.Distinct().ToList()
@@ -69,7 +70,7 @@ namespace KianUSA.Application.Services.Account
         public async Task<List<CustomersOfRepDto>> GetCustomersOfRep(string RepUserName)
         {
             using var Db = new Context();
-            var Customers = await Db.Users.Where(x => x.Rep.Contains(RepUserName)).ToListAsync();
+            var Customers = await Db.Users.Where(x => x.Rep.Contains(RepUserName)).OrderBy(x=>x.StoreName).ToListAsync();
             if (Customers?.Count > 0)
             {
                 return Customers.Select(x =>
@@ -78,7 +79,8 @@ namespace KianUSA.Application.Services.Account
                     Id = x.Id,
                     Name = x.Name,
                     Family = x.LastName,
-                    UserName = x.UserName
+                    UserName = x.UserName,
+                    StoreName = x.StoreName
                 }).ToList();
             }
             else

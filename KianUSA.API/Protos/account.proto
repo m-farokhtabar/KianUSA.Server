@@ -19,6 +19,7 @@ message CustomerOfRepResponseMessage{
 	string Name = 2;
 	string Family = 3;
 	string UserName = 4;
+	string StoreName = 5;
 }
 message CustomersOfRepResponseMessage{
 	 repeated CustomerOfRepResponseMessage Customers = 1;

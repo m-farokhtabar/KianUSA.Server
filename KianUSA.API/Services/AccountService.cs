@@ -36,6 +36,7 @@ namespace KianUSA.API.Services
             claims.Add(new(ClaimTypes.Email, account.Email));
             claims.Add(new(ClaimTypes.GivenName, account.Name));
             claims.Add(new(ClaimTypes.Surname, account.LastName));
+            claims.Add(new("store_name", account.StoreName));
 
             foreach (var Role in account.Roles)
                 if (Role is not null)
@@ -69,7 +70,8 @@ namespace KianUSA.API.Services
                     Id = x.Id.ToString(),
                     Family = x.Family,
                     Name = x.Name,
-                    UserName = x.UserName
+                    UserName = x.UserName,
+                    StoreName = x.StoreName
                 }).ToList());
             }
             return result;
