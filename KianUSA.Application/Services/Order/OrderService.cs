@@ -321,6 +321,7 @@ namespace KianUSA.Application.Services.Order
                                 ProductsName = Product.Name + ", ";
                             break;
                         case PriceType.Sac:
+                        case PriceType.Sample:
                             if ((Prices[1] is null || !Prices[1].Value.HasValue) && (Prices[2] is null || !Prices[2].Value.HasValue))
                                 ProductsName = Product.Name + ", ";
                             break;

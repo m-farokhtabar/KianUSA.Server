@@ -168,7 +168,7 @@ namespace KianUSA.Application.Services.Email
                                                    .Replace("{Total Price}", Tools.GetPriceFormat(totalFinalPrice))
                                                    .Replace("{RowStyle}", GetRowStyle(i, Order.Orders.Count));
                 TotalPrices += totalFinalPrice;
-                totalDiscount += (totalFinalPrice - totalFirstPrice);
+                totalDiscount += (totalFirstPrice - totalFinalPrice);
                 TotalPieces += (Prd.PiecesCount * orderItem.Count);
                 TotalCubes += Prd.Cube.HasValue ? Prd.Cube.Value * orderItem.Count : 0;
                 TotalWeight += Prd.Weight.HasValue ? Prd.Weight.Value * orderItem.Count : 0;
@@ -185,8 +185,11 @@ namespace KianUSA.Application.Services.Email
                                    .Replace("{Total Price}", Tools.GetPriceFormat(TotalPrices))
                                    .Replace("{RowStyle}", GetRowStyle(i, Order.Orders.Count));
 
+            string discount = "$0";
+            if (totalDiscount != 0)
+                discount = "-"+ Tools.GetPriceFormat(totalDiscount);
             OrderEmailTemplate = OrderEmailTemplate.Replace("{OrderTableBody}", Rows)
-                                                    .Replace("{TotalDiscount}", Tools.GetPriceFormat(totalDiscount))
+                                                    .Replace("{TotalDiscount}", discount)
                                                     .Replace("{TotalPricesBelow}", Tools.GetPriceFormat(TotalPrices))
                                                     .Replace("{TotalPieces}", TotalPieces.ToString())
                                                     .Replace("{TotalCubes}", TotalCubes.ToString())
@@ -243,12 +246,13 @@ namespace KianUSA.Application.Services.Email
                         {
                             if (!string.IsNullOrWhiteSpace(MarketSpecial))
                             {
-                                if (MarketSpecial == "1")
-                                    finalPrice = Prices[1].Value.Value - ((Prices[1].Value.Value * 5) / 100);
-                                else if (MarketSpecial == "2")
-                                    finalPrice = Prices[1].Value.Value - ((Prices[1].Value.Value * 10) / 100);
-                                else
-                                    finalPrice = Prices[1].Value.Value;
+                                //Just For Las Vegas
+                                //if (MarketSpecial == "1")
+                                //    finalPrice = Prices[1].Value.Value - ((Prices[1].Value.Value * 5) / 100);
+                                //else if (MarketSpecial == "2")
+                                //    finalPrice = Prices[1].Value.Value - ((Prices[1].Value.Value * 10) / 100);
+                                //else
+                                finalPrice = Prices[1].Value.Value;
                             }
                             else
                                 finalPrice = Prices[1].Value.Value;

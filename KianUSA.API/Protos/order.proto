@@ -6,6 +6,7 @@ enum PriceType {
     Fob = 0;
     Sac = 1;
     LandedPrice = 2;
+    Sample = 3;
 }
 enum DeliveryType{
     CustomerForwarder = 0;
