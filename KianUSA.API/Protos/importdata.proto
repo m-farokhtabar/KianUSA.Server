@@ -12,4 +12,5 @@ message ByFilesRequest{
 }
 service ImportDataSrv{
 	rpc ByFiles(ByFilesRequest) returns (ByFilesResponse);
+	rpc PoDataByExcelFile(ByFilesRequest) returns (ByFilesResponse);
 }

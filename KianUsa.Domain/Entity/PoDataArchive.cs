@@ -2,7 +2,7 @@
 
 namespace KianUSA.Domain.Entity
 {
-    public class PoData
+    public class PoDataArchive
     {
         public string PoNumber { get; set; }
 
@@ -12,7 +12,7 @@ namespace KianUSA.Domain.Entity
         public string Date { get; set; }
         public string CustomerPO { get; set; }
         public string EstimateNumber { get; set; }
-        public string Name { get; set; }        
+        public string Name { get; set; }
         public string DueDate { get; set; }
         public string ItemGroup { get; set; }
         public string Forwarder { get; set; }
@@ -47,41 +47,5 @@ namespace KianUSA.Domain.Entity
         //Ap
         public DateTime? BillDate { get; set; }
         public string Note { get; set; }
-    }
-    public enum FactoryStatus
-    {
-        NotStarted,
-        WaitingForFabric,
-        InProduction,
-        ReadyToGo,
-        WaitingForConfirmation,
-        BookedWithForwarder,
-        Canceled,
-        None = 999999
-    }
-    public enum ForwarderName
-    {
-        Apex,
-        Hecny,
-        Other,
-        OEC,
-        Hold,
-        None = 999999
-    }
-    public enum DischargeStatus
-    {
-        NotArrived,
-        OnVassel,
-        ReadyForPickUp,
-        OnHold,
-        None = 999999
-    }
-    public enum ShippmentStatus
-    {
-        PleaseAccept,
-        DoNotAccept,
-        HoldTheBooking,
-        Change,
-        None = 999999
     }
 }

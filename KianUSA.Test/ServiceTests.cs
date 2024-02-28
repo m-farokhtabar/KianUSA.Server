@@ -73,6 +73,14 @@ namespace KianUSA.Test
             UpdateGroupByExcelService Service = new();
             await Service.Update(File);
         }
+        [Trait("Creator", "Database Data")]
+        [Fact, Priority(7)]
+        public async Task ShouldBeCreatedAllPoDataByExcelFile()
+        {
+            FileStream File = new(Path + "PO.xlsx", FileMode.Open, FileAccess.Read);
+            UpdatePoDataByExcelService Service = new();
+            await Service.Update(File);
+        }
         [Trait("Creator", "Catalogs")]
         [Fact, Priority(7)]
         public async Task CreateCatalogs()
