@@ -5,6 +5,24 @@ namespace KianUSA.Domain.Entity
     public class PoData
     {
         public string PoNumber { get; set; }
+
+        //Excel
+        public string Rep { get; set; }
+        public string User { get; set; }
+        public DateTime? Date { get; set; }
+        public string CustomerPO { get; set; }
+        public string EstimateNumber { get; set; }
+        public string Name { get; set; }        
+        public DateTime? DueDate { get; set; }
+        public string ItemGroup { get; set; }
+        public string Forwarder { get; set; }
+        public string IOR { get; set; }
+        public string ShipTo { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ContainerNumber { get; set; }
+        public string ETAAtPort { get; set; }
+
+
         //Factory
         public FactoryStatus? FactoryStatus { get; set; }
         public DateTime? StatusDate { get; set; }

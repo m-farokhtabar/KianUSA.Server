@@ -4,21 +4,22 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace KianUsa.Application.Data.Config
 {
-    public class PoDataConfig : IEntityTypeConfiguration<PoData>
+    public class PoDataArchiveConfig : IEntityTypeConfiguration<PoDataArchive>
     {
-        public void Configure(EntityTypeBuilder<PoData> builder)
+        public void Configure(EntityTypeBuilder<PoDataArchive> builder)
         {            
-            builder.ToTable(nameof(PoData));
+            builder.ToTable(nameof(PoDataArchive));
             builder.HasKey(x => x.PoNumber);
             builder.Property(x => x.PoNumber).HasMaxLength(15);
 
             builder.Property(x => x.Rep).IsRequired(false);
             builder.Property(x => x.User).IsRequired(false).HasMaxLength(200);
-            builder.Property(x => x.Date).IsRequired(false);            
+            builder.Property(x => x.Date).IsRequired(false);
             builder.Property(x => x.CustomerPO).IsRequired(false).HasMaxLength(200);
             builder.Property(x => x.EstimateNumber).IsRequired(false).HasMaxLength(200);
             builder.Property(x => x.Name).IsRequired(false).HasMaxLength(200);
-            builder.Property(x => x.DueDate).IsRequired(false);            
+            builder.Property(x => x.DueDate).IsRequired(false);
+            
             builder.Property(x => x.ItemGroup).IsRequired(false).HasMaxLength(200);
             builder.Property(x => x.Forwarder).IsRequired(false).HasMaxLength(200);
             builder.Property(x => x.IOR).IsRequired(false).HasMaxLength(200);
@@ -26,8 +27,6 @@ namespace KianUsa.Application.Data.Config
             builder.Property(x => x.ShippingCarrier).IsRequired(false).HasMaxLength(200);
             builder.Property(x => x.ContainerNumber).IsRequired(false).HasMaxLength(200);
             builder.Property(x => x.ETAAtPort).IsRequired(false).HasMaxLength(200);
-
-
 
             builder.Property(x => x.FactoryStatus).IsRequired(false);
             builder.Property(x => x.StatusDate).IsRequired(false);

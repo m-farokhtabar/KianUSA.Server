@@ -1,6 +1,4 @@
-﻿using KianUSA.Application.Data;
-using KianUSA.Domain.Entity;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using NpgsqlTypes;
@@ -41,10 +39,9 @@ namespace KianUSA.API
                             .ReadFrom.Services(services)
                             .Enrich.FromLogContext()
                             .Enrich.WithExceptionDetails()
-                            .WriteTo.Console()
+                            .WriteTo.Console().MinimumLevel.Information()
                             .WriteTo.PostgreSQL(Connection, "logs", columnWriters, needAutoCreateTable: true).MinimumLevel.Error();
-                    })                    
-
+                    })
                 //.ConfigureLogging((context, logging) =>
                 //{
                 //    logging.ClearProviders();

@@ -1,10 +1,10 @@
 ﻿using Grpc.Core;
 using Hangfire;
 using KianUSA.Application.SeedWork;
-using KianUSA.Application.Services.Catalog;
 using KianUSA.Application.Services.UpdateDataByExcel;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace KianUSA.API.Services
@@ -16,7 +16,7 @@ namespace KianUSA.API.Services
         private readonly UpdateRoleByExcelService RlService;
         private readonly UpdateUserByExcelService UsrService;
         private readonly UpdateFilterByExcelService FilterService;
-        private readonly UpdateGroupByExcelService GroupService;
+        private readonly UpdateGroupByExcelService GroupService;        
 
         private readonly KianUSA.Application.Services.Catalog.CatalogService CatalogService;
         private readonly Application.Services.Account.AccountService service;
@@ -31,7 +31,7 @@ namespace KianUSA.API.Services
             RlService = new UpdateRoleByExcelService();
             UsrService = new UpdateUserByExcelService();
             FilterService = new UpdateFilterByExcelService();
-            GroupService = new UpdateGroupByExcelService();
+            GroupService = new UpdateGroupByExcelService();            
             CatalogService = new(applicationSettings);
 
             this.applicationSettings = applicationSettings;
@@ -59,6 +59,70 @@ namespace KianUSA.API.Services
 
                 
                 //backgroundJobClient.Enqueue(() => CatalogService.Create());
+                return await Task.FromResult(new ByFilesResponse() { IsSuccessful = true });
+            }
+            catch (Exception Ex)
+            {
+                return await Task.FromResult(new ByFilesResponse() { IsSuccessful = false, Message = Ex.Message });
+            }
+        }
+        public override async Task<ByFilesResponse> PoDataFullByExcelFile(ByFilesRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var acc = await service.Login(request.Username, request.Password);
+                if (acc.Roles?.Count > 0 && acc.Roles.Any(x => string.Equals(x, "admin", StringComparison.OrdinalIgnoreCase)))
+                {
+                    FileStream PoDataFile = new($"{applicationSettings.ImportPath}PO.xlsx", FileMode.Open, FileAccess.Read);
+                    var poDataService = new UpdatePoDataByExcelService(PoDataFile);
+                    await poDataService.UpdateData();
+                    await poDataService.UpdateSecurity();
+                }
+                else
+                    throw new Exception("Your do not have admin level");
+                
+                return await Task.FromResult(new ByFilesResponse() { IsSuccessful = true });
+            }
+            catch (Exception Ex)
+            {
+                return await Task.FromResult(new ByFilesResponse() { IsSuccessful = false, Message = Ex.Message });
+            }
+        }
+        public override async Task<ByFilesResponse> PoDataDataByExcelFile(ByFilesRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var acc = await service.Login(request.Username, request.Password);
+                if (acc.Roles?.Count > 0 && acc.Roles.Any(x => string.Equals(x, "admin", StringComparison.OrdinalIgnoreCase)))
+                {
+                    FileStream PoDataFile = new($"{applicationSettings.ImportPath}PO.xlsx", FileMode.Open, FileAccess.Read);
+                    var poDataService = new UpdatePoDataByExcelService(PoDataFile);
+                    await poDataService.UpdateData();
+                }
+                else
+                    throw new Exception("Your do not have admin level");
+
+                return await Task.FromResult(new ByFilesResponse() { IsSuccessful = true });
+            }
+            catch (Exception Ex)
+            {
+                return await Task.FromResult(new ByFilesResponse() { IsSuccessful = false, Message = Ex.Message });
+            }
+        }
+        public override async Task<ByFilesResponse> PoDataSecurityByExcelFile(ByFilesRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var acc = await service.Login(request.Username, request.Password);
+                if (acc.Roles?.Count > 0 && acc.Roles.Any(x => string.Equals(x, "admin", StringComparison.OrdinalIgnoreCase)))
+                {
+                    FileStream PoDataFile = new($"{applicationSettings.ImportPath}PO.xlsx", FileMode.Open, FileAccess.Read);
+                    var poDataService = new UpdatePoDataByExcelService(PoDataFile);
+                    await poDataService.UpdateSecurity();
+                }
+                else
+                    throw new Exception("Your do not have admin level");
+
                 return await Task.FromResult(new ByFilesResponse() { IsSuccessful = true });
             }
             catch (Exception Ex)
