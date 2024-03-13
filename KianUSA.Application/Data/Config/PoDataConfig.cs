@@ -10,15 +10,15 @@ namespace KianUsa.Application.Data.Config
         {            
             builder.ToTable(nameof(PoData));
             builder.HasKey(x => x.PoNumber);
-            builder.Property(x => x.PoNumber).HasMaxLength(10);
+            builder.Property(x => x.PoNumber).HasMaxLength(15);
 
-            builder.Property(x => x.Rep).IsRequired(false).HasMaxLength(200);
+            builder.Property(x => x.Rep).IsRequired(false);
             builder.Property(x => x.User).IsRequired(false).HasMaxLength(200);
-            builder.Property(x => x.Date).IsRequired(false).HasMaxLength(200);
+            builder.Property(x => x.Date).IsRequired(false);            
             builder.Property(x => x.CustomerPO).IsRequired(false).HasMaxLength(200);
             builder.Property(x => x.EstimateNumber).IsRequired(false).HasMaxLength(200);
             builder.Property(x => x.Name).IsRequired(false).HasMaxLength(200);
-            builder.Property(x => x.DueDate).IsRequired(false).HasMaxLength(200);
+            builder.Property(x => x.DueDate).IsRequired(false);            
             builder.Property(x => x.ItemGroup).IsRequired(false).HasMaxLength(200);
             builder.Property(x => x.Forwarder).IsRequired(false).HasMaxLength(200);
             builder.Property(x => x.IOR).IsRequired(false).HasMaxLength(200);

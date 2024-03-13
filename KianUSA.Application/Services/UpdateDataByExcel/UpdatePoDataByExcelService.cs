@@ -3,61 +3,42 @@ using KianUSA.Application.Services.UpdateDataByExcel.Helper;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using static KianUSA.Application.Services.UpdateDataByExcel.Helper.UpdateByExcelHelper;
 
 namespace KianUSA.Application.Services.UpdateDataByExcel
 {
     public class UpdatePoDataByExcelService
     {
-        public async Task Update(Stream stream)
+        private readonly Stream stream;
+        private readonly DataTableCollection tables;
+
+        public UpdatePoDataByExcelService(Stream stream)
         {
             if (stream is null)
                 throw new Exception("Please upload correct PoData excel file.");
-            List<Domain.Entity.PoData> newPoData = new();
+            this.stream = stream;
+            tables = UpdateByExcelHelper.ReadExcel(stream);
+        }
+        public async Task UpdateSecurity()
+        {
             List<Domain.Entity.PoDataSecurity> newPoDataSecurity = new();
             try
-            {
-                var Tables = UpdateByExcelHelper.ReadExcel(stream);
-                if (Tables?.Count > 0)
+            {                
+                if (tables?.Count > 0)
                 {
-                    if (Tables[0].Rows?.Count > 0)
+                    if (tables[1].Rows?.Count > 0)
                     {
-                        for (int i = 0; i < Tables[0].Rows.Count; i++)
+                        for (int i = 0; i < tables[1].Rows.Count; i++)
                         {
-                            var Row = Tables[0].Rows[i];
-                            Domain.Entity.PoData NewUser = new()
-                            {
-                                PoNumber = Row["PO Number"].ToString().Trim(),
-
-                                Rep = Row["Rep"].ToString().Trim(),
-                                User = Row["User"].ToString().Trim(),
-                                Date = Row["Date"].ToString().Trim(),
-                                CustomerPO = Row["Customer PO"].ToString().Trim(),
-                                EstimateNumber = Row["Estimate Number"].ToString().Trim(),
-                                Name = Row["Name"].ToString().Trim(),
-                                DueDate = Row["Due Date"].ToString().Trim(),
-                                ItemGroup = Row["Item Group"].ToString().Trim(),
-                                Forwarder = Row["Forwarder"].ToString().Trim(),
-                                IOR = Row["IOR"].ToString().Trim(),
-                                ShipTo = Row["Ship To"].ToString().Trim(),
-                                ShippingCarrier = Row["Shipping Carrier"].ToString().Trim(),
-                                ContainerNumber = Row["Container Number"].ToString().Trim(),
-                                ETAAtPort = Row["ETA at Port"].ToString().Trim(),
-                            };
-                            newPoData.Add(NewUser);
-                        }
-                    }
-                    if (Tables[1].Rows?.Count > 0)
-                    {
-                        for (int i = 0; i < Tables[1].Rows.Count; i++)
-                        {
-                            var Row = Tables[1].Rows[i];
+                            var Row = tables[1].Rows[i];
                             Domain.Entity.PoDataSecurity NewSecurity = new()
                             {
                                 PoNumber = Row["PO Number"].ToString().Trim(),
-                                
+
                                 User = Row["User"].ToString().Trim(),
                                 Date = Row["Date"].ToString().Trim(),
                                 CustomerPO = Row["Customer PO"].ToString().Trim(),
@@ -92,7 +73,7 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                                 EmptyDate = Row["Empty Date"].ToString().Trim(),
                                 GateOut = Row["Gate out"].ToString().Trim(),
                                 BillDate = Row["Bill Date"].ToString().Trim(),
-                                Note = Row["Note"].ToString().Trim()                                
+                                Note = Row["Note"].ToString().Trim()
                             };
                             newPoDataSecurity.Add(NewSecurity);
                         }
@@ -101,16 +82,13 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
             }
             catch (Exception ex)
             {
-                throw new Exception("there are some errors during reading data from PoData excel.[" + ex.Message + "]");
+                throw new Exception("there are some errors during reading security data from PoData excel.[" + ex.Message + "]");
             }
-            if (newPoData?.Count > 0)
+            if (newPoDataSecurity?.Count > 0)
             {
                 try
                 {
                     using var db = new Context();
-                    var oldPoData = await db.PoDatas.ToListAsync().ConfigureAwait(false);
-                    var archivePoData = RecognizeOldDataNeedTobeArchivedOrUpdateOrInsert(oldPoData, newPoData);
-                    db.PoDatasArchive.AddRange(archivePoData);
                     if (newPoDataSecurity?.Count > 0)
                     {
                         await db.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"PoDataSecurity\"");
@@ -118,9 +96,77 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
                     }
                     await db.SaveChangesAsync();
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
-                    throw new Exception($"Cannot update data in database error message is [{ex.Message}]");
+                    throw new Exception($"Cannot update security data in database error message is [{ex.Message}]");
+                }
+            }
+            else
+                throw new Exception("There is no security data in PoData excel file to update!!");
+        }
+        public async Task UpdateData()
+        {
+            List<Domain.Entity.PoData> excelPoData = new();
+            try
+            {                
+                if (tables?.Count > 0)
+                {
+                    if (tables[0].Rows?.Count > 0)
+                    {
+                        for (int i = 0; i < tables[0].Rows.Count; i++)
+                        {
+                            var Row = tables[0].Rows[i];
+                            Domain.Entity.PoData NewUser = new()
+                            {
+                                PoNumber = Row["PO Number"].ToString().Trim(),
+
+                                Rep = Row["Rep"].ToString().Trim(),
+                                User = Row["User"].ToString().Trim(),
+                                Date = GetDateTime(Row["Date"]),
+                                CustomerPO = Row["Customer PO"].ToString().Trim(),
+                                EstimateNumber = Row["Estimate Number"].ToString().Trim(),
+                                Name = Row["Name"].ToString().Trim(),
+                                DueDate = GetDateTime(Row["Due Date"]),
+                                ItemGroup = Row["Item Group"].ToString().Trim(),
+                                Forwarder = Row["Forwarder"].ToString().Trim(),
+                                IOR = Row["IOR"].ToString().Trim(),
+                                ShipTo = Row["Ship To"].ToString().Trim(),
+                                ShippingCarrier = Row["Shipping Carrier"].ToString().Trim(),
+                                ContainerNumber = Row["Container Number"].ToString().Trim(),
+                                ETAAtPort = Row["ETA at Port"].ToString().Trim(),
+                                
+                            };
+                            excelPoData.Add(NewUser);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("there are some errors during reading data from PoData excel.[" + ex.Message + "]");
+            }
+            if (excelPoData?.Count > 0)
+            {
+                if (excelPoData.Any(x => string.IsNullOrWhiteSpace(x.PoNumber)))
+                    throw new Exception("Some of records do not have [PoNumber]. [PoNumber] is mandatory.");
+                try
+                {
+                    using var db = new Context();
+                    var dbPoData = await db.PoDatas.ToListAsync().ConfigureAwait(false);
+                    (var archivePoData, var newPoData, var removeList) = RecognizeOldDataNeedTobeArchivedOrUpdateOrInsert(dbPoData, excelPoData);
+
+                    if (archivePoData?.Count > 0)
+                        db.PoDatasArchive.AddRange(archivePoData);
+                    if (newPoData?.Count > 0)
+                        db.PoDatas.AddRange(newPoData);
+                    if (removeList?.Count > 0)
+                        db.PoDatas.RemoveRange(removeList);
+                    int c = db.ChangeTracker.Entries<Domain.Entity.PoData>().Count(x => x.State == EntityState.Unchanged);
+                    await db.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Cannot update data in database error message is [{ex.Message}] + [{ex.InnerException?.Message}]");
                 }
             }
             else
@@ -128,83 +174,87 @@ namespace KianUSA.Application.Services.UpdateDataByExcel
 
         }
 
-        private List<Domain.Entity.PoDataArchive> RecognizeOldDataNeedTobeArchivedOrUpdateOrInsert(List<Domain.Entity.PoData> oldData, List<Domain.Entity.PoData> newData)
+        private (List<Domain.Entity.PoDataArchive> archiveList, List<Domain.Entity.PoData> newList, List<Domain.Entity.PoData> removeList) RecognizeOldDataNeedTobeArchivedOrUpdateOrInsert(List<Domain.Entity.PoData> dbData, List<Domain.Entity.PoData> excelData)
         {
             List<Domain.Entity.PoDataArchive> needTobeArchived = new();
+            List<Domain.Entity.PoData> newList = new();
+            List<Domain.Entity.PoData> removeList = null;
             DateTime CurrentDate = DateTime.Now;
-            foreach (var oldItem in oldData)
+            foreach (var dbItem in dbData)
             {
-                var newItem = newData.Find(x => string.Equals(x.PoNumber?.Trim(), oldItem.PoNumber.Trim()));
+                var excelItem = excelData.Find(x => string.Equals(x.PoNumber?.Trim(), dbItem.PoNumber.Trim()));
                 //اگر پیدا شد باید به روز شود
-                if (newItem is not null)
+                if (excelItem is not null)
                 {
-                    oldItem.Rep = newItem.Rep;
-                    oldItem.User = newItem.User;
-                    oldItem.Date = newItem.User;
-                    oldItem.CustomerPO = newItem.CustomerPO;
-                    oldItem.EstimateNumber = newItem.EstimateNumber;
-                    oldItem.Name = newItem.Name;
-                    oldItem.DueDate = newItem.DueDate;
-                    oldItem.ItemGroup = newItem.ItemGroup;
-                    oldItem.Forwarder = newItem.Forwarder;
-                    oldItem.IOR = newItem.IOR;
-                    oldItem.ShipTo = newItem.ShipTo;
-                    oldItem.ShippingCarrier = newItem.ShippingCarrier;
-                    oldItem.ContainerNumber = newItem.ContainerNumber;
-                    oldItem.ETAAtPort = newItem.ETAAtPort;
+                    dbItem.Rep = excelItem.Rep;
+                    dbItem.User = excelItem.User;
+                    dbItem.Date = excelItem.Date;
+                    dbItem.CustomerPO = excelItem.CustomerPO;
+                    dbItem.EstimateNumber = excelItem.EstimateNumber;
+                    dbItem.Name = excelItem.Name;
+                    dbItem.DueDate = excelItem.DueDate;
+                    dbItem.ItemGroup = excelItem.ItemGroup;
+                    dbItem.Forwarder = excelItem.Forwarder;
+                    dbItem.IOR = excelItem.IOR;
+                    dbItem.ShipTo = excelItem.ShipTo;
+                    dbItem.ShippingCarrier = excelItem.ShippingCarrier;
+                    dbItem.ContainerNumber = excelItem.ContainerNumber;
+                    dbItem.ETAAtPort = excelItem.ETAAtPort;
                     //از لیست حذف می شود چون دیگر نیازی بهش نداریم
-                    newData.Remove(newItem);
+                    excelData.Remove(excelItem);
                 }
                 //اگر پیدا نشد باید حذف شود و به جدول بایگانی انتقال داده شود
                 else
                 {
                     needTobeArchived.Add(new Domain.Entity.PoDataArchive()
                     {
-                        PoNumber = oldItem.PoNumber,
-                        Note = oldItem.Note,
-                        Rep = oldItem.Rep,
-                        User = oldItem.User,
-                        Date = oldItem.Date,
-                        CustomerPO = oldItem.CustomerPO,
-                        EstimateNumber = oldItem.EstimateNumber,
-                        Name = oldItem.Name,                            
-                        DueDate = oldItem.DueDate,
-                        ItemGroup = oldItem.ItemGroup,
-                        Forwarder = oldItem.Forwarder,
-                        IOR = oldItem.IOR,
-                        ShipTo = oldItem.ShipTo,
-                        ShippingCarrier = oldItem.ShippingCarrier,
-                        ContainerNumber = oldItem.ContainerNumber,                            
-                        BillDate = oldItem.BillDate ?? CurrentDate,
-                        BookingDate = oldItem.BookingDate,
-                        ConfirmDate = oldItem.ConfirmDate,
-                        DischargeStatus = oldItem.DischargeStatus,
-                        DocumentsSendOutDate = oldItem.DocumentsSendOutDate,
-                        EmptyDate = oldItem.EmptyDate,
-                        ETA = oldItem.ETA,
-                        ETAAtPort = oldItem.ETAAtPort,
-                        ETD = oldItem.ETA,
-                        FactoryBookingDate = oldItem.FactoryBookingDate,
-                        FactoryContainerNumber = oldItem.FactoryContainerNumber,
-                        FactoryStatus = oldItem.FactoryStatus,
-                        ForwarderName = oldItem.ForwarderName,
-                        GateIn = oldItem.GateIn,
-                        GateOut = oldItem.GateOut,
-                        PortOfDischarge = oldItem.PortOfDischarge,
-                        Rate = oldItem.Rate,
-                        ShippmentStatus = oldItem.ShippmentStatus,
-                        StatusDate = oldItem.StatusDate
+                        PoNumber = dbItem.PoNumber?.Trim(),
+                        Note = dbItem.Note,
+                        Rep = dbItem.Rep,
+                        User = dbItem.User,
+                        Date = dbItem.Date,
+                        CustomerPO = dbItem.CustomerPO,
+                        EstimateNumber = dbItem.EstimateNumber,
+                        Name = dbItem.Name,
+                        DueDate = dbItem.DueDate,
+                        ItemGroup = dbItem.ItemGroup,
+                        Forwarder = dbItem.Forwarder,
+                        IOR = dbItem.IOR,
+                        ShipTo = dbItem.ShipTo,
+                        ShippingCarrier = dbItem.ShippingCarrier,
+                        ContainerNumber = dbItem.ContainerNumber,
+                        BillDate = dbItem.BillDate ?? CurrentDate,
+                        BookingDate = dbItem.BookingDate,
+                        ConfirmDate = dbItem.ConfirmDate,
+                        DischargeStatus = dbItem.DischargeStatus,
+                        DocumentsSendOutDate = dbItem.DocumentsSendOutDate,
+                        EmptyDate = dbItem.EmptyDate,
+                        ETA = dbItem.ETA,
+                        ETAAtPort = dbItem.ETAAtPort,
+                        ETD = dbItem.ETA,
+                        FactoryBookingDate = dbItem.FactoryBookingDate,
+                        FactoryContainerNumber = dbItem.FactoryContainerNumber,
+                        FactoryStatus = dbItem.FactoryStatus,
+                        ForwarderName = dbItem.ForwarderName,
+                        GateIn = dbItem.GateIn,
+                        GateOut = dbItem.GateOut,
+                        PortOfDischarge = dbItem.PortOfDischarge,
+                        Rate = dbItem.Rate,
+                        ShippmentStatus = dbItem.ShippmentStatus,
+                        StatusDate = dbItem.StatusDate
                     });
                 }
             }
             //از لیست حذف می شود چون باید به جدول آرشیو منتقل شود و از این جدول حذف شود
-            if (needTobeArchived?.Count>0)
-                oldData.RemoveAll(x=> needTobeArchived.Any(y=> string.Equals(y.PoNumber,x.PoNumber)));
+            if (needTobeArchived?.Count > 0)
+            {
+                removeList = dbData.Where(x => needTobeArchived.Any(y => string.Equals(y.PoNumber, x.PoNumber))).ToList();
+            }
 
             //تمام داده های باقی مانده به عنوان داده جدید باید وارد سیستم شود
-            oldData.AddRange(newData);
-            
-            return needTobeArchived;
+            newList.AddRange(excelData);
+
+            return (needTobeArchived, newList, removeList);
         }
 
     }

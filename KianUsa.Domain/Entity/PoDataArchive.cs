@@ -9,11 +9,11 @@ namespace KianUSA.Domain.Entity
         //Excel
         public string Rep { get; set; }
         public string User { get; set; }
-        public string Date { get; set; }
+        public DateTime? Date { get; set; }
         public string CustomerPO { get; set; }
         public string EstimateNumber { get; set; }
         public string Name { get; set; }
-        public string DueDate { get; set; }
+        public DateTime? DueDate { get; set; }
         public string ItemGroup { get; set; }
         public string Forwarder { get; set; }
         public string IOR { get; set; }

@@ -15,7 +15,7 @@ namespace KianUSA.Test
     public class ServiceTests
     {
         private readonly ApplicationSettings ApplicationSettings;
-        private const string Path = @"D:\Projects\Sepehr\KainUsa.Server.App\Data\Excels\7\";
+        private const string Path = @"D:\Projects\Sepehr\KainUsa.Server.App\Data\Excels\9\";
         public ServiceTests()
         {
             ApplicationSettings = new()
@@ -78,8 +78,9 @@ namespace KianUSA.Test
         public async Task ShouldBeCreatedAllPoDataByExcelFile()
         {
             FileStream File = new(Path + "PO.xlsx", FileMode.Open, FileAccess.Read);
-            UpdatePoDataByExcelService Service = new();
-            await Service.Update(File);
+            UpdatePoDataByExcelService Service = new(File);
+            await Service.UpdateData();
+            await Service.UpdateSecurity();
         }
         [Trait("Creator", "Catalogs")]
         [Fact, Priority(7)]
@@ -100,13 +101,13 @@ namespace KianUSA.Test
             await Srv.SendContactUs("Mehdi", "Ahmady", "123-123-1234", "Mehdi.fr@gmail.com", "woowo asajd asdjuad  asdjaksdjasd asd adjasdbnas daskjdasd asd a asdasd.");
         }
 
-        [Trait("Po", "Excel")]
-        [Fact]
-        public void GetPoData()
-        {
-            PoDataService srv = new PoDataService(ApplicationSettings, new List<string>() { "admin" });
-            srv.GetDataByExcel();
-        }
+        //[Trait("Po", "Excel")]
+        //[Fact]
+        //public void GetPoData()
+        //{
+        //    PoDataService srv = new PoDataService(ApplicationSettings, new List<string>() { "admin" });
+        //    srv.GetDataByExcel();
+        //}
         //[Trait("Generate", "Catalogs")]
         //[Fact, Priority(9)]
         //public async Task GenerateCatalogs()

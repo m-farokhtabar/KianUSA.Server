@@ -3,15 +3,17 @@ using System;
 using KianUSA.Application.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace KianUSA.Application.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20240228221500_KianUsa-2")]
+    partial class KianUsa2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -202,8 +204,8 @@ namespace KianUSA.Application.Migrations
             modelBuilder.Entity("KianUSA.Domain.Entity.PoData", b =>
                 {
                     b.Property<string>("PoNumber")
-                        .HasMaxLength(15)
-                        .HasColumnType("character varying(15)");
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.Property<DateTime?>("BillDate")
                         .HasColumnType("timestamp without time zone");
@@ -222,8 +224,9 @@ namespace KianUSA.Application.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime?>("Date")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<string>("Date")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<int?>("DischargeStatus")
                         .HasColumnType("integer");
@@ -231,8 +234,9 @@ namespace KianUSA.Application.Migrations
                     b.Property<DateTime?>("DocumentsSendOutDate")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTime?>("DueDate")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<string>("DueDate")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTime?>("ETA")
                         .HasColumnType("timestamp without time zone");
@@ -324,8 +328,8 @@ namespace KianUSA.Application.Migrations
             modelBuilder.Entity("KianUSA.Domain.Entity.PoDataArchive", b =>
                 {
                     b.Property<string>("PoNumber")
-                        .HasMaxLength(15)
-                        .HasColumnType("character varying(15)");
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.Property<DateTime?>("BillDate")
                         .HasColumnType("timestamp without time zone");
@@ -344,8 +348,9 @@ namespace KianUSA.Application.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<DateTime?>("Date")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<string>("Date")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<int?>("DischargeStatus")
                         .HasColumnType("integer");
@@ -353,8 +358,9 @@ namespace KianUSA.Application.Migrations
                     b.Property<DateTime?>("DocumentsSendOutDate")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTime?>("DueDate")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<string>("DueDate")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTime?>("ETA")
                         .HasColumnType("timestamp without time zone");

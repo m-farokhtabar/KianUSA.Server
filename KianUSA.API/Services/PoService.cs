@@ -26,11 +26,17 @@ namespace KianUSA.API.Services
         public override async Task<PoResponse> Get(PoGetRequest request, ServerCallContext context)
         {
             NewService(context);
-            (PoDataDto data, PoSecurityData Security) = service.GetDataByExcel();
+            PoDataWithPermissionDto data;
             if (request.IsArchive)
-                await service.FillOutArchiveDbDataToPoData(data, Security);
+                data = await service.GetArchive();
             else
-                await service.FillOutLiveDbDataToPoData(data, Security);
+                data = await service.Get();
+            //(PoDataWithPermissionDto data, PoSecurityData Security) = service.GetDataByExcel();
+            //if (request.IsArchive)
+            //    await service.FillOutArchiveDbDataToPoData(data, Security);
+            //else
+            //    await service.FillOutLiveDbDataToPoData(data, Security);
+
             PoResponse result = new();
             if (data?.Data?.Count > 0)
                 foreach (var item in data.Data)
@@ -135,7 +141,7 @@ namespace KianUSA.API.Services
                 throw new Exception("Data is not valid!", Ex);
             }
         }
-        private PoData MapToPoData(PoExcelDbDataDto dataDto)
+        private PoData MapToPoData(PoDataDto dataDto)
         {
             return new PoData()
             {

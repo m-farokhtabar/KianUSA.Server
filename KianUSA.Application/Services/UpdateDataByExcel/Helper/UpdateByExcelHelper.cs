@@ -245,6 +245,12 @@ namespace KianUSA.Application.Services.UpdateDataByExcel.Helper
             }
             return null;
         }
+        public static DateTime? GetDateTime(object value)
+        {            
+            if (value is null || value is not DateTime)
+                return null;
+            return (DateTime?)value;
+        }
 
     }
 }
